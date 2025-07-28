@@ -49,32 +49,44 @@ export class MembershipService {
     return m;
   }
 
-  // 搜索会员
-  static async searchMemberships(query: string, limit: number = 10): Promise<MembershipResponse[]> {
-    const memberships = await prisma.memberships.findMany({
-      where: {
-        OR: [
-          { name: { contains: query } },
-          { phone: { contains: query } },
-          { cardNumber: { contains: query } },
-          { cardType: { contains: query } }
-        ]
-      },
-      select: {
-        id: true,
-        name: true,
-        phone: true,
-        cardNumber: true,
-        cardType: true,
-        issueDate: true,
-        remainingSoups: true,
-      },
-      take: limit,
-      orderBy: {
-        id: 'desc'
-      }
-    });
-    return memberships;
+  // 搜索会员（分页）
+  static async searchMemberships(query: string, page: number = 1, pageSize: number = 10): Promise<{ members: MembershipResponse[]; total: number; page: number; pageSize: number }> {
+    const skip = (page - 1) * pageSize;
+    const [memberships, total] = await Promise.all([
+      prisma.memberships.findMany({
+        where: {
+          OR: [
+            { name: { contains: query } },
+            { phone: { contains: query } },
+            { cardNumber: { contains: query } },
+            { cardType: { contains: query } }
+          ]
+        },
+        select: {
+          id: true,
+          name: true,
+          phone: true,
+          cardNumber: true,
+          cardType: true,
+          issueDate: true,
+          remainingSoups: true,
+        },
+        orderBy: { id: 'desc' },
+        skip,
+        take: pageSize,
+      }),
+      prisma.memberships.count({
+        where: {
+          OR: [
+            { name: { contains: query } },
+            { phone: { contains: query } },
+            { cardNumber: { contains: query } },
+            { cardType: { contains: query } }
+          ]
+        }
+      })
+    ]);
+    return { members: memberships, total, page, pageSize };
   }
 
   // 创建会员
@@ -136,6 +148,22 @@ export class MembershipService {
     const existing = await this.getMembershipById(id);
     if (!existing) throw new Error('会员不存在');
     await prisma.memberships.delete({ where: { id } });
+  }
+
+  // 会员统计
+  static async getStats(): Promise<{ total: number; active: number; inactive: number; cardTypeCount: number }> {
+    const [total, active, inactive, cardTypes] = await Promise.all([
+      prisma.memberships.count(),
+      prisma.memberships.count({ where: { remainingSoups: { gt: 0 } } }),
+      prisma.memberships.count({ where: { remainingSoups: 0 } }),
+      prisma.memberships.findMany({ select: { cardType: true }, distinct: ['cardType'] })
+    ]);
+    return {
+      total,
+      active,
+      inactive,
+      cardTypeCount: cardTypes.length
+    };
   }
 
   // 验证创建数据

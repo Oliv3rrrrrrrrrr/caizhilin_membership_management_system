@@ -115,7 +115,7 @@ export default function NewSoupPage() {
                 className="px-4 py-2 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white rounded-xl flex items-center font-medium transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 cursor-pointer"
               >
                 <FiCoffee className="mr-2" />
-                返回列表
+                汤品列表
               </button>
             </div>
           </div>

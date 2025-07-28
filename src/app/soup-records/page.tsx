@@ -18,7 +18,7 @@ import {
   FiPlus,
   FiCheckCircle,
 } from 'react-icons/fi';
-import { getSoupRecords, deleteSoupRecord } from '@/services/soupRecordService';
+import { getSoupRecords, deleteSoupRecord, getSoupRecordStats, searchSoupRecords } from '@/services/soupRecordService';
 import { SoupRecordResponse } from '@/types/soupRecord';
 import { formatBeijingTime } from '@/lib/timeUtils';
 import Pagination from '@/components/Pagination';
@@ -28,7 +28,21 @@ export default function SoupRecordsPage() {
   const [records, setRecords] = useState<SoupRecordResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [stats, setStats] = useState<{ total: number; today: number; week: number; uniqueMembers: number }>({ total: 0, today: 0, week: 0, uniqueMembers: 0 });
+  // 搜索相关
   const [searchTerm, setSearchTerm] = useState('');
+  const [isSearching, setIsSearching] = useState(false);
+  const [searchResults, setSearchResults] = useState<SoupRecordResponse[]>([]);
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [searchError, setSearchError] = useState('');
+  const [searchPage, setSearchPage] = useState(1);
+  const [searchPageSize, setSearchPageSize] = useState(10);
+  const [searchTotal, setSearchTotal] = useState(0);
+  // 主列表分页
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const [total, setTotal] = useState(0);
+  // 其它筛选、排序等状态保持不变
   const [filterSoupType, setFilterSoupType] = useState('');
   const [filterDateRange, setFilterDateRange] = useState('');
   const [showFilters, setShowFilters] = useState(false);
@@ -36,12 +50,8 @@ export default function SoupRecordsPage() {
   const [sortField, setSortField] = useState<'drinkTime' | 'memberName' | 'soupName' | 'id'>('drinkTime');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
   const [successMessage, setSuccessMessage] = useState('');
-  // 分页相关
-  const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
-  const [total, setTotal] = useState(0);
 
-  // 获取喝汤记录列表
+  // 主列表分页获取
   const fetchRecords = async (pageNum = page, size = pageSize) => {
     try {
       setLoading(true);
@@ -62,9 +72,66 @@ export default function SoupRecordsPage() {
     }
   };
 
+  // 统计卡片
+  const fetchStats = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) return;
+      const s = await getSoupRecordStats(token);
+      setStats(s);
+    } catch {}
+  };
+
+  // 搜索分页获取
+  const fetchSearchResults = async (term = searchTerm, pageNum = searchPage, size = searchPageSize) => {
+    if (!term.trim()) return;
+    try {
+      setSearchLoading(true);
+      setSearchError('');
+      const token = localStorage.getItem('token');
+      if (!token) {
+        router.push('/login');
+        return;
+      }
+      const result = await searchSoupRecords(term, token, pageNum, size);
+      setSearchResults(result.records);
+      setSearchTotal(result.total);
+      setSearchPage(result.page);
+      setSearchPageSize(result.pageSize);
+    } catch (err: any) {
+      setSearchError(err.message);
+    } finally {
+      setSearchLoading(false);
+    }
+  };
+
   useEffect(() => {
     fetchRecords();
+    fetchStats();
   }, [page, pageSize]);
+
+  useEffect(() => {
+    if (isSearching) {
+      fetchSearchResults(searchTerm, searchPage, searchPageSize);
+    }
+  }, [isSearching, searchPage, searchPageSize]);
+
+  // 搜索事件
+  const handleSearch = () => {
+    if (!searchTerm.trim()) return;
+    setIsSearching(true);
+    setSearchPage(1);
+    fetchSearchResults(searchTerm, 1, searchPageSize);
+  };
+
+  // 清除搜索
+  const handleClearSearch = () => {
+    setIsSearching(false);
+    setSearchTerm('');
+    setSearchResults([]);
+    setSearchTotal(0);
+    setSearchPage(1);
+  };
 
   // 检查URL参数中的成功消息
   useEffect(() => {
@@ -81,6 +148,7 @@ export default function SoupRecordsPage() {
   const handleRefresh = async () => {
     setIsRefreshing(true);
     await fetchRecords();
+    await fetchStats(); // 刷新统计数据
     setTimeout(() => setIsRefreshing(false), 500);
   };
 
@@ -98,6 +166,7 @@ export default function SoupRecordsPage() {
       }
       await deleteSoupRecord(id, token);
       await fetchRecords(); // 重新加载列表
+      await fetchStats(); // 重新加载统计
     } catch (err: any) {
       alert('删除失败: ' + err.message);
     }
@@ -105,14 +174,7 @@ export default function SoupRecordsPage() {
 
   // 筛选记录
   const filteredRecords = records.filter(record => {
-    const matchesSearch = 
-      record.membership.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      record.membership.phone.includes(searchTerm) ||
-      record.soup.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      record.soup.type.toLowerCase().includes(searchTerm.toLowerCase());
-    
     const matchesSoupType = !filterSoupType || record.soup.type === filterSoupType;
-    
     let matchesDateRange = true;
     if (filterDateRange) {
       const recordDate = new Date(record.drinkTime);
@@ -139,8 +201,7 @@ export default function SoupRecordsPage() {
           break;
       }
     }
-    
-    return matchesSearch && matchesSoupType && matchesDateRange;
+    return matchesSoupType && matchesDateRange;
   });
 
   // 排序记录
@@ -282,43 +343,40 @@ export default function SoupRecordsPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600 dark:text-gray-400">总记录数</p>
-                <p className="text-3xl font-bold text-gray-900 dark:text-white mt-2">{totalRecords}</p>
+                <p className="text-3xl font-bold text-gray-900 dark:text-white mt-2">{stats.total}</p>
               </div>
               <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl flex items-center justify-center">
                 <FiCoffee className="text-white text-xl" />
               </div>
             </div>
           </div>
-
           <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 border border-gray-100 dark:border-gray-700 hover:shadow-xl transition-all duration-300 transform hover:scale-105">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600 dark:text-gray-400">今日记录</p>
-                <p className="text-3xl font-bold text-green-600 dark:text-green-400 mt-2">{todayRecords}</p>
+                <p className="text-3xl font-bold text-green-600 dark:text-green-400 mt-2">{stats.today}</p>
               </div>
               <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center">
                 <FiTrendingUp className="text-white text-xl" />
               </div>
             </div>
           </div>
-
           <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 border border-gray-100 dark:border-gray-700 hover:shadow-xl transition-all duration-300 transform hover:scale-105">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600 dark:text-gray-400">本周记录</p>
-                <p className="text-3xl font-bold text-blue-600 dark:text-blue-400 mt-2">{weekRecords}</p>
+                <p className="text-3xl font-bold text-blue-600 dark:text-blue-400 mt-2">{stats.week}</p>
               </div>
               <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center">
                 <FiCalendar className="text-white text-xl" />
               </div>
             </div>
           </div>
-
           <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 border border-gray-100 dark:border-gray-700 hover:shadow-xl transition-all duration-300 transform hover:scale-105">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600 dark:text-gray-400">参与会员</p>
-                <p className="text-3xl font-bold text-purple-600 dark:text-purple-400 mt-2">{uniqueMembers}</p>
+                <p className="text-3xl font-bold text-purple-600 dark:text-purple-400 mt-2">{stats.uniqueMembers}</p>
               </div>
               <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center">
                 <FiUser className="text-white text-xl" />
@@ -327,10 +385,9 @@ export default function SoupRecordsPage() {
           </div>
         </div>
 
-        {/* 搜索和筛选 */}
+        {/* 搜索栏和筛选 */}
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 mb-8 border border-gray-100 dark:border-gray-700">
           <div className="flex flex-col lg:flex-row gap-4">
-            {/* 搜索框 */}
             <div className="flex-1">
               <div className="relative">
                 <FiSearch className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 text-lg" />
@@ -338,12 +395,27 @@ export default function SoupRecordsPage() {
                   type="text"
                   placeholder="搜索会员姓名、手机号、汤品名称或类型..."
                   value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
+                  onChange={e => setSearchTerm(e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && handleSearch()}
                   className="w-full pl-12 pr-4 py-4 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-4 focus:ring-orange-500/20 focus:border-orange-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-lg transition-all duration-200"
                 />
+                <div className="absolute right-4 top-1/2 transform -translate-y-1/2 flex space-x-2">
+                  <button
+                    onClick={handleSearch}
+                    className="px-4 py-2 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white rounded-lg font-medium shadow-md hover:shadow-lg transition-all duration-200 text-sm cursor-pointer"
+                  >
+                    搜索
+                  </button>
+                  <button
+                    onClick={handleClearSearch}
+                    disabled={!isSearching && !searchTerm}
+                    className="px-4 py-2 bg-gradient-to-r from-gray-300 to-gray-400 hover:from-gray-400 hover:to-gray-500 text-gray-700 rounded-lg font-medium shadow-md hover:shadow-lg transition-all duration-200 text-sm disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                  >
+                    清除
+                  </button>
+                </div>
               </div>
             </div>
-
             {/* 筛选按钮 */}
             <button
               onClick={() => setShowFilters(!showFilters)}
@@ -398,7 +470,158 @@ export default function SoupRecordsPage() {
           )}
         </div>
 
-        {/* 记录列表 */}
+        {/* 搜索结果区（独立于主列表） */}
+        {isSearching && (
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 mb-8 border border-gray-100 dark:border-gray-700 min-h-[300px]">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-semibold text-gray-900 dark:text-white flex items-center">
+                <FiSearch className="mr-3 text-orange-600" />
+                搜索结果
+              </h2>
+              <span className="bg-orange-100 dark:bg-orange-900 text-orange-800 dark:text-orange-200 px-3 py-1 rounded-full text-sm font-medium">
+                {searchTotal} 条记录
+              </span>
+            </div>
+            {searchLoading ? (
+              <div className="text-center py-12">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600 mx-auto mb-4"></div>
+                <p className="text-gray-600 dark:text-gray-400 text-lg">正在搜索记录...</p>
+              </div>
+            ) : searchError ? (
+              <div className="p-6 bg-red-50 dark:bg-red-900/20 border-b border-red-200 dark:border-red-800">
+                <div className="flex items-center">
+                  <div className="w-5 h-5 bg-red-500 rounded-full mr-3"></div>
+                  <p className="text-red-600 dark:text-red-400 font-medium">{searchError}</p>
+                </div>
+              </div>
+            ) : searchResults.length === 0 ? (
+              <div className="p-12 text-center">
+                <div className="w-24 h-24 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <FiCoffee className="text-gray-400 text-3xl" />
+                </div>
+                <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+                  没有找到匹配的记录
+                </h3>
+                <p className="text-gray-600 dark:text-gray-400 mb-8 max-w-md mx-auto">
+                  请尝试调整搜索条件或筛选条件
+                </p>
+                <button
+                  onClick={handleClearSearch}
+                  className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white px-8 py-4 rounded-xl font-medium transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 cursor-pointer"
+                >
+                  清除搜索
+                </button>
+              </div>
+            ) : (
+              <>
+                <div>
+                  <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                    <thead className="bg-gray-50 dark:bg-gray-700">
+                      <tr>
+                        <th className="px-8 py-4 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">会员信息</th>
+                        <th className="px-8 py-4 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">汤品信息</th>
+                        <th className="px-8 py-4 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">喝汤时间</th>
+                        <th className="px-8 py-4 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">记录ID</th>
+                        <th className="px-8 py-4 text-right text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">操作</th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                      {searchResults.map((record, index) => (
+                        <tr
+                          key={record.id}
+                          className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-200 transform hover:scale-[1.01]"
+                          style={{ animationDelay: `${index * 50}ms` }}
+                        >
+                          <td className="px-8 py-6 whitespace-nowrap">
+                            <div className="flex items-center">
+                              <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center mr-4">
+                                <span className="text-white font-semibold text-sm">
+                                  {record.membership.name.charAt(0)}
+                                </span>
+                              </div>
+                              <div>
+                                <div className="text-lg font-semibold text-gray-900 dark:text-white">
+                                  {record.membership.name}
+                                </div>
+                                <div className="text-sm text-gray-500 dark:text-gray-400">
+                                  {record.membership.phone}
+                                </div>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-8 py-6 whitespace-nowrap">
+                            <div>
+                              <div className="text-lg font-semibold text-gray-900 dark:text-white">
+                                {record.soup.name}
+                              </div>
+                              <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gradient-to-r from-orange-100 to-orange-200 text-orange-800 dark:from-orange-900 dark:to-orange-800 dark:text-orange-200">
+                                {record.soup.type}
+                              </span>
+                            </div>
+                          </td>
+                          <td className="px-8 py-6 whitespace-nowrap">
+                            <div>
+                              <div className="text-lg font-semibold text-gray-900 dark:text-white">
+                                {formatBeijingTime(record.drinkTime)}
+                              </div>
+                              <div className="text-sm text-gray-500 dark:text-gray-400">
+                                {new Date(record.drinkTime).toLocaleDateString('zh-CN')}
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-8 py-6 whitespace-nowrap">
+                            <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gradient-to-r from-gray-100 to-gray-200 text-gray-800 dark:from-gray-700 dark:to-gray-600 dark:text-gray-200">
+                              #{record.id}
+                            </span>
+                          </td>
+                          <td className="px-8 py-6 whitespace-nowrap text-right text-sm font-medium">
+                            <div className="flex items-center justify-end space-x-3">
+                              <button
+                                onClick={() => router.push(`/soup-records/${record.id}`)}
+                                className="p-2 text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-all duration-200 cursor-pointer"
+                                title="查看详情"
+                              >
+                                <FiEye className="h-5 w-5" />
+                              </button>
+                              <button
+                                onClick={() => router.push(`/soup-records/${record.id}/edit`)}
+                                className="p-2 text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-lg transition-all duration-200 cursor-pointer"
+                                title="编辑"
+                              >
+                                <FiEdit2 className="h-5 w-5" />
+                              </button>
+                              <button
+                                onClick={() => handleDelete(record.id, record.soup.name, record.membership.name)}
+                                className="p-2 text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all duration-200 cursor-pointer"
+                                title="删除"
+                              >
+                                <FiTrash2 className="h-5 w-5" />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                {/* 仅当搜索结果大于10条时显示分页 */}
+                {searchTotal > 10 && (
+                  <div className="w-full flex justify-center items-center py-2 text-xs">
+                    <Pagination
+                      total={searchTotal}
+                      page={searchPage}
+                      pageSize={searchPageSize}
+                      onPageChange={p => fetchSearchResults(searchTerm, p, searchPageSize)}
+                      onPageSizeChange={s => fetchSearchResults(searchTerm, 1, s)}
+                    />
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+        )}
+
+        {/* 主列表始终渲染 */}
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden border border-gray-100 dark:border-gray-700">
           <div className="px-8 py-6 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-700 dark:to-gray-600">
             <div className="flex items-center justify-between">
@@ -407,11 +630,10 @@ export default function SoupRecordsPage() {
                 喝汤记录列表
               </h2>
               <span className="bg-orange-100 dark:bg-orange-900 text-orange-800 dark:text-orange-200 px-3 py-1 rounded-full text-sm font-medium">
-                {sortedRecords.length} 条记录
+                {total} 条记录
               </span>
             </div>
           </div>
-
           {error && (
             <div className="p-6 bg-red-50 dark:bg-red-900/20 border-b border-red-200 dark:border-red-800">
               <div className="flex items-center">
@@ -446,7 +668,7 @@ export default function SoupRecordsPage() {
               )}
             </div>
           ) : (
-            <div className="overflow-x-auto">
+            <div>
               <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                 <thead className="bg-gray-50 dark:bg-gray-700">
                   <tr>

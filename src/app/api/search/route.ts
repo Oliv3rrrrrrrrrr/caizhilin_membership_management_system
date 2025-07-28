@@ -17,6 +17,8 @@ export async function GET(request: NextRequest) {
     const query = searchParams.get('q') || '';
     const type = searchParams.get('type') || 'all'; // all, members, soups, records
     const limit = parseInt(searchParams.get('limit') || '10');
+    const page = parseInt(searchParams.get('page') || '1');
+    const pageSize = parseInt(searchParams.get('pageSize') || '10');
 
     // 3. 验证查询参数
     if (!query.trim()) {
@@ -28,8 +30,11 @@ export async function GET(request: NextRequest) {
     // 4. 根据类型搜索
     if (type === 'all' || type === 'members') {
       // 4.1 搜索会员
-      const memberships = await MembershipService.searchMemberships(query, limit);
-      results.members = memberships;
+      const { members, total } = await MembershipService.searchMemberships(query, page, pageSize);
+      results.members = members;
+      results.total = total;
+      results.page = page;
+      results.pageSize = pageSize;
     }
 
     if (type === 'all' || type === 'soups') {

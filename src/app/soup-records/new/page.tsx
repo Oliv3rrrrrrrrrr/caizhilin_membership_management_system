@@ -103,7 +103,7 @@ export default function NewSoupRecordPage() {
       }
 
       const results = await searchMemberships(query, token);
-      setSearchResults(results);
+      setSearchResults(results.members);
       setShowSearchResults(true);
     } catch (err: any) {
       console.error('搜索会员失败:', err);
@@ -284,7 +284,7 @@ export default function NewSoupRecordPage() {
                 className="px-4 py-2 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white rounded-xl flex items-center font-medium transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 cursor-pointer"
               >
                 <FiCoffee className="mr-2" />
-                返回记录列表
+                喝汤记录
               </button>
             </div>
           </div>

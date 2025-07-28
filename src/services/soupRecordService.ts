@@ -77,12 +77,22 @@ export async function deleteSoupRecord(id: number, token: string): Promise<void>
   if (!data.success) throw new Error(data.message || '删除喝汤记录失败');
 }
 
-// 搜索喝汤记录
-export async function searchSoupRecords(query: string, token: string, limit: number = 10): Promise<SoupRecordResponse[]> {
-  const res = await fetch(`/api/search?q=${encodeURIComponent(query)}&type=soupRecords&limit=${limit}`, {
+// 获取喝汤记录统计信息
+export async function getSoupRecordStats(token: string): Promise<{ total: number; today: number; week: number; uniqueMembers: number }> {
+  const res = await fetch('/api/soup-records/stats', {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  const data = await res.json();
+  if (!data.success) throw new Error(data.message || '获取喝汤记录统计信息失败');
+  return data.data;
+}
+
+// 搜索喝汤记录（分页）
+export async function searchSoupRecords(query: string, token: string, page: number = 1, pageSize: number = 10): Promise<{ records: any[]; total: number; page: number; pageSize: number }> {
+  const res = await fetch(`/api/soup-records/search?q=${encodeURIComponent(query)}&page=${page}&pageSize=${pageSize}`, {
     headers: { Authorization: `Bearer ${token}` }
   });
   const data = await res.json();
   if (!data.success) throw new Error(data.message || '搜索喝汤记录失败');
-  return data.data.soupRecords || [];
+  return data.data;
 } 

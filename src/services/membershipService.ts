@@ -70,12 +70,27 @@ export async function deleteMembership(id: number, token: string): Promise<void>
   if (!data.success) throw new Error(data.message || '删除会员失败');
 }
 
-// 搜索会员
-export async function searchMemberships(query: string, token: string, limit: number = 10): Promise<MembershipResponse[]> {
-  const res = await fetch(`/api/search?q=${encodeURIComponent(query)}&type=members&limit=${limit}`, {
+// 搜索会员（分页）
+export async function searchMemberships(query: string, token: string, page: number = 1, pageSize: number = 10): Promise<{ members: MembershipResponse[]; total: number; page: number; pageSize: number }> {
+  const res = await fetch(`/api/search?q=${encodeURIComponent(query)}&type=members&page=${page}&pageSize=${pageSize}`, {
     headers: { Authorization: `Bearer ${token}` }
   });
   const data = await res.json();
   if (!data.success) throw new Error(data.message || '搜索会员失败');
-  return data.data.members || [];
+  return {
+    members: data.data.members || [],
+    total: data.data.total || 0,
+    page: data.data.page || page,
+    pageSize: data.data.pageSize || pageSize,
+  };
+} 
+
+// 获取会员统计信息
+export async function getMembershipStats(token: string): Promise<{ total: number; active: number; inactive: number; cardTypeCount: number }> {
+  const res = await fetch('/api/memberships/stats', {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  const data = await res.json();
+  if (!data.success) throw new Error(data.message || '获取会员统计信息失败');
+  return data.data;
 } 

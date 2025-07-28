@@ -141,6 +141,61 @@ export class SoupRecordService {
     }));
   }
 
+  // 统计接口
+  static async getStats() {
+    const [total, today, week, uniqueMembers] = await Promise.all([
+      prisma.soupRecord.count(),
+      prisma.soupRecord.count({
+        where: {
+          drinkTime: {
+            gte: new Date(new Date().setHours(0, 0, 0, 0)),
+          },
+        },
+      }),
+      prisma.soupRecord.count({
+        where: {
+          drinkTime: {
+            gte: new Date(new Date().setDate(new Date().getDate() - 6)),
+          },
+        },
+      }),
+      prisma.soupRecord.findMany({
+        select: { membershipId: true },
+        distinct: ['membershipId'],
+      }),
+    ]);
+    return {
+      total,
+      today,
+      week,
+      uniqueMembers: uniqueMembers.length,
+    };
+  }
+
+  // 搜索接口（分页、模糊）
+  static async searchRecords(query: string, page = 1, pageSize = 10) {
+    const skip = (page - 1) * pageSize;
+    const where = {
+      OR: [
+        { membership: { name: { contains: query } } },
+        { membership: { phone: { contains: query } } },
+        { soup: { name: { contains: query } } },
+        { soup: { type: { contains: query } } },
+      ],
+    };
+    const [records, total] = await Promise.all([
+      prisma.soupRecord.findMany({
+        where,
+        include: { membership: true, soup: true },
+        orderBy: { drinkTime: 'desc' },
+        skip,
+        take: pageSize,
+      }),
+      prisma.soupRecord.count({ where }),
+    ]);
+    return { records, total, page, pageSize };
+  }
+
   // 根据会员ID获取喝汤记录（分页）
   static async getSoupRecordsByMembershipId(membershipId: number, page: number = 1, pageSize: number = 10): Promise<{ data: SoupRecordResponse[]; total: number; page: number; pageSize: number }> {
     const skip = (page - 1) * pageSize;

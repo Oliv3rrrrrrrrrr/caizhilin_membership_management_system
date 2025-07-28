@@ -1,5 +1,7 @@
 'use client';
 
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import Navbar from './Navbar';
 import Sidebar from './Sidebar';
 import StatsCards from './StatsCards';
@@ -11,6 +13,17 @@ import Notifications from './Notifications';
 import Charts from './Charts';
 
 export default function DashboardPage() {
+  const router = useRouter();
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        router.push('/login');
+      }
+    }
+  }, [router]);
+
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
