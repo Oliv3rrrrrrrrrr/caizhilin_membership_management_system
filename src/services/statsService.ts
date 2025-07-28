@@ -1,5 +1,4 @@
 import type { StatsData } from '@/types/stats';
-
 // 获取统计数据
 export async function getStats(token: string): Promise<StatsData> {
   const res = await fetch('/api/stats', {

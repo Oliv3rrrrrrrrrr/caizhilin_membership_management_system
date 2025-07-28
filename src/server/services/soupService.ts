@@ -31,13 +31,35 @@ export class SoupService {
         type: true,
       }
     });
+    if (!soup) return null;
     return soup;
+  }
+
+  // 搜索汤品
+  static async searchSoups(query: string, limit: number = 10): Promise<SoupResponse[]> {
+    const soups = await prisma.soup.findMany({
+      where: {
+        OR: [
+          { name: { contains: query } },
+          { type: { contains: query } }
+        ]
+      },
+      select: {
+        id: true,
+        name: true,
+        type: true,
+      },
+      take: limit,
+      orderBy: {
+        id: 'desc'
+      }
+    });
+    return soups;
   }
 
   // 创建汤品
   static async createSoup(data: CreateSoupRequest): Promise<SoupResponse> {
     this.validateCreateData(data);
-    await this.checkNameExists(data.name);
     const soup = await prisma.soup.create({
       data: {
         name: data.name,
@@ -54,10 +76,9 @@ export class SoupService {
 
   // 更新汤品
   static async updateSoup(id: number, data: UpdateSoupRequest): Promise<SoupResponse> {
-    const existingSoup = await this.getSoupById(id);
-    if (!existingSoup) throw new Error('汤品不存在');
+    const existing = await this.getSoupById(id);
+    if (!existing) throw new Error('汤品不存在');
     this.validateUpdateData(data);
-    if (data.name) await this.checkNameExists(data.name, id);
     const updateData: any = {};
     if (data.name !== undefined) updateData.name = data.name;
     if (data.type !== undefined) updateData.type = data.type;
@@ -76,35 +97,34 @@ export class SoupService {
 
   // 删除汤品
   static async deleteSoup(id: number): Promise<void> {
-    const existingSoup = await this.getSoupById(id);
-    if (!existingSoup) throw new Error('汤品不存在');
-    const soupRecords = await prisma.soupRecord.findMany({ where: { soupId: id } });
-    if (soupRecords.length > 0) throw new Error('该汤品有关联的喝汤记录，无法删除');
+    const existing = await this.getSoupById(id);
+    if (!existing) throw new Error('汤品不存在');
+    
+    // 检查是否有关联的喝汤记录
+    const relatedRecords = await prisma.soupRecord.findFirst({
+      where: { soupId: id }
+    });
+    if (relatedRecords) {
+      throw new Error('该汤品有关联的喝汤记录，无法删除');
+    }
+    
     await prisma.soup.delete({ where: { id } });
   }
 
   // 验证创建数据
   private static validateCreateData(data: CreateSoupRequest): void {
     if (!data.name || !data.type) throw new Error('汤品名称和类型都是必填项');
-    if (data.name.length < 1 || data.name.length > 50) throw new Error('汤品名称长度应在1-50位之间');
-    if (data.type.length < 1 || data.type.length > 20) throw new Error('汤品类型长度应在1-20位之间');
+    if (data.name.length < 1 || data.name.length > 50) throw new Error('汤品名称长度必须在1-50个字符之间');
+    if (data.type.length < 1 || data.type.length > 20) throw new Error('汤品类型长度必须在1-20个字符之间');
   }
 
   // 验证更新数据
   private static validateUpdateData(data: UpdateSoupRequest): void {
-    if (data.name !== undefined) {
-      if (data.name.length < 1 || data.name.length > 50) throw new Error('汤品名称长度应在1-50位之间');
+    if (data.name !== undefined && (data.name.length < 1 || data.name.length > 50)) {
+      throw new Error('汤品名称长度必须在1-50个字符之间');
     }
-    if (data.type !== undefined) {
-      if (data.type.length < 1 || data.type.length > 20) throw new Error('汤品类型长度应在1-20位之间');
+    if (data.type !== undefined && (data.type.length < 1 || data.type.length > 20)) {
+      throw new Error('汤品类型长度必须在1-20个字符之间');
     }
-  }
-
-  // 检查名称是否存在
-  private static async checkNameExists(name: string, excludeId?: number): Promise<void> {
-    const whereClause: any = { name };
-    if (excludeId) whereClause.id = { not: excludeId };
-    const existingSoup = await prisma.soup.findFirst({ where: whereClause });
-    if (existingSoup) throw new Error('该汤品名称已存在');
   }
 } 

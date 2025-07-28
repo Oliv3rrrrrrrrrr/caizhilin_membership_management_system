@@ -7,43 +7,52 @@ const prisma = new PrismaClient();
 
 // 喝汤记录服务
 export class SoupRecordService {
-  // 获取所有喝汤记录
-  static async getAllSoupRecords(): Promise<SoupRecordResponse[]> {
-    const records = await prisma.soupRecord.findMany({
-      include: {
-        membership: {
-          select: {
-            id: true,
-            name: true,
-            phone: true,
-            cardNumber: true,
-            cardType: true,
+  // 获取所有喝汤记录（分页）
+  static async getAllSoupRecords(page: number = 1, pageSize: number = 10): Promise<{ data: SoupRecordResponse[]; total: number; page: number; pageSize: number }> {
+    const skip = (page - 1) * pageSize;
+    const [records, total] = await Promise.all([
+      prisma.soupRecord.findMany({
+        include: {
+          membership: {
+            select: {
+              id: true,
+              name: true,
+              phone: true,
+              cardNumber: true,
+              cardType: true,
+            }
+          },
+          soup: {
+            select: {
+              id: true,
+              name: true,
+              type: true,
+            }
           }
         },
-        soup: {
-          select: {
-            id: true,
-            name: true,
-            type: true,
-          }
-        }
-      },
-      orderBy: {
-        drinkTime: 'desc'
-      }
-    });
-    return records.map(record => ({
-      id: record.id,
-      drinkTime: toBeijingISOString(record.drinkTime),
-      membershipId: record.membershipId,
-      soupId: record.soupId,
-      membership: record.membership,
-      soup: record.soup
-    }));
+        orderBy: { drinkTime: 'desc' },
+        skip,
+        take: pageSize,
+      }),
+      prisma.soupRecord.count()
+    ]);
+    return {
+      data: records.map(record => ({
+        id: record.id,
+        drinkTime: toBeijingISOString(record.drinkTime),
+        membershipId: record.membershipId,
+        soupId: record.soupId,
+        membership: record.membership,
+        soup: record.soup
+      })),
+      total,
+      page,
+      pageSize
+    };
   }
 
   // 根据ID获取喝汤记录
-  static async getSoupRecordById(id: number): Promise<SoupRecordResponse | null> {
+  static async getSoupRecordById(id: number): Promise<SoupRecordWithDetailsResponse | null> {
     const record = await prisma.soupRecord.findUnique({
       where: { id },
       include: {
@@ -54,6 +63,7 @@ export class SoupRecordService {
             phone: true,
             cardNumber: true,
             cardType: true,
+            remainingSoups: true,
           }
         },
         soup: {
@@ -69,17 +79,35 @@ export class SoupRecordService {
     return {
       id: record.id,
       drinkTime: toBeijingISOString(record.drinkTime),
-      membershipId: record.membershipId,
-      soupId: record.soupId,
       membership: record.membership,
       soup: record.soup
     };
   }
 
-  // 根据会员ID获取喝汤记录
-  static async getSoupRecordsByMembershipId(membershipId: number): Promise<SoupRecordResponse[]> {
+  // 搜索喝汤记录
+  static async searchSoupRecords(query: string, limit: number = 10): Promise<SoupRecordResponse[]> {
     const records = await prisma.soupRecord.findMany({
-      where: { membershipId },
+      where: {
+        OR: [
+          {
+            membership: {
+              OR: [
+                { name: { contains: query } },
+                { phone: { contains: query } },
+                { cardNumber: { contains: query } }
+              ]
+            }
+          },
+          {
+            soup: {
+              OR: [
+                { name: { contains: query } },
+                { type: { contains: query } }
+              ]
+            }
+          }
+        ]
+      },
       include: {
         membership: {
           select: {
@@ -98,6 +126,7 @@ export class SoupRecordService {
           }
         }
       },
+      take: limit,
       orderBy: {
         drinkTime: 'desc'
       }
@@ -110,6 +139,51 @@ export class SoupRecordService {
       membership: record.membership,
       soup: record.soup
     }));
+  }
+
+  // 根据会员ID获取喝汤记录（分页）
+  static async getSoupRecordsByMembershipId(membershipId: number, page: number = 1, pageSize: number = 10): Promise<{ data: SoupRecordResponse[]; total: number; page: number; pageSize: number }> {
+    const skip = (page - 1) * pageSize;
+    const [records, total] = await Promise.all([
+      prisma.soupRecord.findMany({
+        where: { membershipId },
+        include: {
+          membership: {
+            select: {
+              id: true,
+              name: true,
+              phone: true,
+              cardNumber: true,
+              cardType: true,
+            }
+          },
+          soup: {
+            select: {
+              id: true,
+              name: true,
+              type: true,
+            }
+          }
+        },
+        orderBy: { drinkTime: 'desc' },
+        skip,
+        take: pageSize,
+      }),
+      prisma.soupRecord.count({ where: { membershipId } })
+    ]);
+    return {
+      data: records.map(record => ({
+        id: record.id,
+        drinkTime: toBeijingISOString(record.drinkTime),
+        membershipId: record.membershipId,
+        soupId: record.soupId,
+        membership: record.membership,
+        soup: record.soup
+      })),
+      total,
+      page,
+      pageSize
+    };
   }
 
   // 创建喝汤记录

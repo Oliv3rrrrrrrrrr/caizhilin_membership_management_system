@@ -8,23 +8,27 @@ const prisma = new PrismaClient();
 
 // 会员服务
 export class MembershipService {
-  // 获取所有会员
-  static async getAllMemberships(): Promise<MembershipResponse[]> {
-    const memberships = await prisma.memberships.findMany({
-      select: {
-        id: true,
-        name: true,
-        phone: true,
-        cardNumber: true,
-        cardType: true,
-        issueDate: true,
-        remainingSoups: true,
-      },
-      orderBy: {
-        id: 'desc'
-      }
-    });
-    return memberships;
+  // 获取所有会员（分页）
+  static async getAllMemberships(page: number = 1, pageSize: number = 10): Promise<{ data: MembershipResponse[]; total: number; page: number; pageSize: number }> {
+    const skip = (page - 1) * pageSize;
+    const [memberships, total] = await Promise.all([
+      prisma.memberships.findMany({
+        select: {
+          id: true,
+          name: true,
+          phone: true,
+          cardNumber: true,
+          cardType: true,
+          issueDate: true,
+          remainingSoups: true,
+        },
+        orderBy: { id: 'desc' },
+        skip,
+        take: pageSize,
+      }),
+      prisma.memberships.count()
+    ]);
+    return { data: memberships, total, page, pageSize };
   }
 
   // 根据ID获取会员
@@ -43,6 +47,34 @@ export class MembershipService {
     });
     if (!m) return null;
     return m;
+  }
+
+  // 搜索会员
+  static async searchMemberships(query: string, limit: number = 10): Promise<MembershipResponse[]> {
+    const memberships = await prisma.memberships.findMany({
+      where: {
+        OR: [
+          { name: { contains: query } },
+          { phone: { contains: query } },
+          { cardNumber: { contains: query } },
+          { cardType: { contains: query } }
+        ]
+      },
+      select: {
+        id: true,
+        name: true,
+        phone: true,
+        cardNumber: true,
+        cardType: true,
+        issueDate: true,
+        remainingSoups: true,
+      },
+      take: limit,
+      orderBy: {
+        id: 'desc'
+      }
+    });
+    return memberships;
   }
 
   // 创建会员

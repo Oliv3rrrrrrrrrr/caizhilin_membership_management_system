@@ -186,7 +186,7 @@
 {
   "membershipId": 1,
   "soupId": 1,
-  "drinkTime": "2025-07-28T09:30:00+08:00"
+  "drinkTime": "2025-07-28T09:30:00+08:00" // 可选，不传则使用当前北京时间
 }
 ```
 - **业务逻辑**: 
@@ -213,6 +213,76 @@
 ### 5. 删除喝汤记录
 - **URL**: `DELETE /api/soup-record/{id}`
 - **认证**: 需要 Bearer Token
+
+## 搜索功能
+
+### 1. 全局搜索
+- **URL**: `GET /api/search`
+- **认证**: 需要 Bearer Token
+- **查询参数**:
+  - `q` (必需): 搜索关键词
+  - `type` (可选): 搜索类型 - `all`, `members`, `soups`, `records`
+  - `limit` (可选): 返回结果数量限制，默认10
+- **响应**:
+```json
+{
+  "success": true,
+  "message": "搜索完成",
+  "data": {
+    "members": [...], // 匹配的会员
+    "soups": [...],   // 匹配的汤品
+    "records": [...]  // 匹配的记录
+  }
+}
+```
+
+## 系统设置
+
+### 1. 获取系统设置
+- **URL**: `GET /api/settings`
+- **认证**: 需要 Bearer Token
+- **响应**:
+```json
+{
+  "success": true,
+  "message": "获取系统设置成功",
+  "data": {
+    "systemName": "采芝林会员管理系统",
+    "companyName": "采芝林养生炖汤馆",
+    "contactPhone": "400-123-4567",
+    "businessHours": "09:00-21:00",
+    "timezone": "Asia/Shanghai",
+    "dateFormat": "YYYY-MM-DD",
+    "timeFormat": "HH:mm:ss",
+    "pageSize": 20,
+    "enableNotifications": true,
+    "enableAuditLog": true,
+    "backupFrequency": "daily",
+    "maxLoginAttempts": 5,
+    "sessionTimeout": 24,
+    "theme": "light",
+    "language": "zh-CN"
+  }
+}
+```
+
+### 2. 更新系统设置
+- **URL**: `PUT /api/settings`
+- **认证**: 需要 Bearer Token
+- **请求体**: 包含要更新的设置字段
+- **响应**: 返回更新后的完整设置
+
+## 数据导出
+
+### 1. 导出数据
+- **URL**: `GET /api/export`
+- **认证**: 需要 Bearer Token
+- **查询参数**:
+  - `type` (可选): 导出类型 - `all`, `members`, `soups`, `records`
+  - `format` (可选): 导出格式 - `json`, `csv`, `excel`
+  - `startDate` (可选): 开始日期
+  - `endDate` (可选): 结束日期
+- **响应**: 返回导出的数据，包含元数据信息
 
 ## 统计信息
 
@@ -275,7 +345,7 @@
 ```bash
 curl -X POST http://localhost:3000/api/admin/login \
   -H "Content-Type: application/json" \
-  -d '{"phone":"12345678909","password":"123456"}'
+  -d '{"phone":"18029253555","password":"123456"}'
 ```
 
 ### 2. 使用Token访问受保护的接口
@@ -297,10 +367,24 @@ curl -X POST http://localhost:3000/api/memberships \
   }'
 ```
 
+### 4. 搜索会员
+```bash
+curl -X GET "http://localhost:3000/api/search?q=张三&type=members" \
+  -H "Authorization: Bearer YOUR_TOKEN_HERE"
+```
+
+### 5. 导出数据
+```bash
+curl -X GET "http://localhost:3000/api/export?type=members&format=json" \
+  -H "Authorization: Bearer YOUR_TOKEN_HERE"
+```
+
 ## 注意事项
 
 1. **认证**: 除了登录和创建管理员接口，其他所有接口都需要在请求头中携带 `Authorization: Bearer <token>`
 2. **数据类型**: 注意 `remainingSoups` 等数字字段必须是数字类型，不能是字符串
 3. **时间格式**: 所有时间都使用北京时间，前端显示时无需额外转换
 4. **业务逻辑**: 创建喝汤记录时会自动减少会员剩余汤品数量
-5. **数据完整性**: 删除汤品时会检查是否有关联的喝汤记录 
+5. **数据完整性**: 删除汤品时会检查是否有关联的喝汤记录
+6. **搜索功能**: 支持模糊搜索，可以搜索会员姓名、手机号、卡号等
+7. **数据导出**: 支持多种格式导出，包含完整的元数据信息 
