@@ -1,130 +1,52 @@
-import { PrismaClient } from "@prisma/client";
-import { NextResponse } from "next/server";
-import { hashPassword, verifyToken } from '@/lib/auth';
-import { validatePhone, validatePassword, validateName } from '@/lib/validation';
+import { NextRequest } from 'next/server';
+import { AdminService } from '@/server/services/adminService';
+import { authMiddleware } from '@/lib/middleware';
+import { ApiResponseBuilder } from '@/lib/response';
+import { CreateAdminRequest } from '@/types/admin';
 
-const prisma = new PrismaClient();
-
-export async function POST(request: Request) {
+// 获取所有管理员
+export async function GET(request: NextRequest) {
   try {
-    // 1. 获取请求体数据
-    const body = await request.json();
-    const { name, phone, password } = body;
+    // 1. 认证中间件
+    const authResult = await authMiddleware(request);
+    if (authResult) return authResult;
 
-    // 2. 验证必填字段
-    if (!name || !phone || !password) {
-      return NextResponse.json(
-        { error: "姓名、手机号和密码都是必填项" },
-        { status: 400 }
-      );
-    }
+    // 2. 获取所有管理员
+    const admins = await AdminService.getAllAdmins();
 
-    // 3. 格式验证
-    const nameValidation = validateName(name);
-    if (!nameValidation.isValid) {
-      return NextResponse.json(
-        { error: nameValidation.message },
-        { status: 400 }
-      );
-    }
+    // 3. 返回成功响应
+    return ApiResponseBuilder.success(admins, '获取管理员列表成功');
 
-    if (!validatePhone(phone)) {
-      return NextResponse.json(
-        { error: "手机号格式不正确" },
-        { status: 400 }
-      );
-    }
-    
-    const passwordValidation = validatePassword(password);
-    if (!passwordValidation.isValid) {
-      return NextResponse.json(
-        { error: passwordValidation.message },
-        { status: 400 }
-      );
-    }
-
-    // 4. 检查手机号是否存在
-    const existingAdmin = await prisma.admin.findUnique({
-      where: {
-        phone,
-      },
-    });
-    if (existingAdmin) {
-      return NextResponse.json(
-        { error: "手机号已存在" }, 
-        { status: 400 }
-      );
-    }
-    
-    // 5. 加密密码
-    const hashedPassword = await hashPassword(password);
-
-    // 6. 创建新管理员
-    const newAdmin = await prisma.admin.create({
-      data: {
-        name,
-        phone,
-        password: hashedPassword,
-      },
-    });
-
-    // 7. 返回成功相应
-    return NextResponse.json({
-      message: "管理员创建成功",
-      admin: {
-        id: newAdmin.id,
-        name: newAdmin.name,
-        phone: newAdmin.phone,
-      }
-    });
   } catch (error) {
-    return NextResponse.json(
-      { error: "服务器内部错误，创建管理员失败" },
-      { status: 500 }
-    );
+    console.error('获取管理员列表失败:', error);
+    return ApiResponseBuilder.serverError('获取管理员列表失败');
   }
 }
 
-export async function GET(request: Request) {
+// 创建管理员
+export async function POST(request: NextRequest) {
   try {
-    // 1. 获取请求头中的token
-    const authHeader = request.headers.get("authorization");
+    // 1. 解析请求体
+    const body = await request.json();
+    const createData: CreateAdminRequest = {
+      name: body.name,
+      phone: body.phone,
+      password: body.password
+    };
 
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return NextResponse.json(
-        { error: '未提供有效的token' },
-        { status: 401 }
-      );
-    }
+    // 2. 创建管理员
+    const admin = await AdminService.createAdmin(createData);
 
-    // 2. 提取token
-    const token = authHeader.substring(7);
-
-    // 3. 验证 token
-    try {
-      const decoded = verifyToken(token);
-    } catch (error) {
-      return NextResponse.json(
-        { error: '无效的认证令牌' },
-        { status: 401 }
-      );
-    }
-
-    // 4. 获取所有管理员
-    const admins = await prisma.admin.findMany({
-      select: {
-        id: true,
-        name: true,
-        phone: true,
-      },
-    });
-
-    return NextResponse.json(admins);
+    // 3. 返回成功响应
+    return ApiResponseBuilder.success(admin, '管理员创建成功');
 
   } catch (error) {
-    return NextResponse.json(
-      { error: "服务器内部错误，获取管理员失败" },
-      { status: 500 }
-    );
+    console.error('创建管理员失败:', error);
+    
+    if (error instanceof Error) {
+      return ApiResponseBuilder.badRequest(error.message);
+    }
+    
+    return ApiResponseBuilder.serverError('创建管理员失败');
   }
 }
