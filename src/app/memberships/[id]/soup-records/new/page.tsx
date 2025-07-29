@@ -17,7 +17,7 @@ import { getAllSoups } from '@/services/soupService';
 import { MembershipResponse } from '@/types/membership';
 import { SoupResponse } from '@/types/soup';
 import { CreateSoupRecordRequest } from '@/types/soupRecord';
-import { getBeijingNow, formatBeijingTime } from '@/lib/timeUtils';
+import { getSystemNow, formatSystemTime } from '@/lib/timeUtils';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
@@ -25,8 +25,9 @@ import timezone from 'dayjs/plugin/timezone';
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
-function getBeijingDateTimeLocal(): string {
-  return dayjs().tz('Asia/Shanghai').format('YYYY-MM-DDTHH:mm');
+function getSystemDateTimeLocal(): string {
+  const systemTimezone = process.env.NEXT_PUBLIC_SYSTEM_TIMEZONE || 'Asia/Shanghai';
+  return dayjs().tz(systemTimezone).format('YYYY-MM-DDTHH:mm');
 }
 
 export default function NewSoupRecordPage() {
@@ -43,7 +44,7 @@ export default function NewSoupRecordPage() {
   const [formData, setFormData] = useState<CreateSoupRecordRequest>({
     membershipId: membershipId,
     soupId: 0,
-    drinkTime: getBeijingDateTimeLocal()
+    drinkTime: getSystemDateTimeLocal()
   });
 
   const [errors, setErrors] = useState<{[key: string]: string}>({});
@@ -97,9 +98,9 @@ export default function NewSoupRecordPage() {
     } else {
       // 将datetime-local格式转换为Date对象进行比较
       const selectedTime = new Date(formData.drinkTime + ':00'); // 添加秒数
-      const beijingNow = getBeijingNow();
+      const systemNow = getSystemNow();
       
-      if (selectedTime > beijingNow) {
+      if (selectedTime > systemNow) {
         newErrors.drinkTime = '喝汤时间不能晚于当前时间';
       }
     }
@@ -155,7 +156,7 @@ export default function NewSoupRecordPage() {
 
   // 处理取消
   const handleCancel = () => {
-    const defaultTime = getBeijingDateTimeLocal();
+    const defaultTime = getSystemDateTimeLocal();
     if (Object.keys(errors).length > 0 || formData.soupId !== 0 || formData.drinkTime !== defaultTime) {
       if (confirm('您有未保存的修改，确定要取消吗？')) {
         router.back();

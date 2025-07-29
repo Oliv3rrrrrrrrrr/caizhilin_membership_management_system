@@ -26,11 +26,6 @@ import timezone from 'dayjs/plugin/timezone';
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
-// 获取北京时间的datetime-local格式字符串
-function getBeijingDateTimeLocal(date: string): string {
-  return dayjs(date).tz('Asia/Shanghai').format('YYYY-MM-DDTHH:mm');
-}
-
 export default function EditSoupRecordPage() {
   const router = useRouter();
   const params = useParams();

@@ -29,8 +29,10 @@ import timezone from 'dayjs/plugin/timezone';
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
-function getBeijingDateTimeLocal(): string {
-  return dayjs().tz('Asia/Shanghai').format('YYYY-MM-DDTHH:mm');
+function getSystemDateTimeLocal(): string {
+  // 使用系统时区，可以通过环境变量配置
+  const systemTimezone = process.env.NEXT_PUBLIC_SYSTEM_TIMEZONE || 'Asia/Shanghai';
+  return dayjs().tz(systemTimezone).format('YYYY-MM-DDTHH:mm');
 }
 
 export default function NewSoupRecordPage() {
@@ -53,7 +55,7 @@ export default function NewSoupRecordPage() {
   const [formData, setFormData] = useState<CreateSoupRecordRequest>({
     membershipId: 0,
     soupId: 0,
-    drinkTime: getBeijingDateTimeLocal()
+    drinkTime: getSystemDateTimeLocal()
   });
 
   const [errors, setErrors] = useState<{[key: string]: string}>({});
@@ -223,7 +225,7 @@ export default function NewSoupRecordPage() {
     if (Object.keys(errors).length > 0 || 
         formData.membershipId !== 0 || 
         formData.soupId !== 0 || 
-        formData.drinkTime !== getBeijingDateTimeLocal() ||
+        formData.drinkTime !== getSystemDateTimeLocal() ||
         selectedMember !== null ||
         memberSearchTerm !== '') {
       if (confirm('您有未保存的修改，确定要取消吗？')) {

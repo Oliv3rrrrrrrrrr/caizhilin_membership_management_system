@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyToken } from '@/lib/auth';
-import { toBeijingISOString } from '@/lib/timeUtils';
+import { toSystemISOString } from '@/lib/timeUtils';
 
 // 扩展请求类型以包含用户信息
 interface AuthenticatedRequest extends NextRequest {
@@ -20,7 +20,7 @@ export async function authMiddleware(request: NextRequest): Promise<NextResponse
           success: false,
           message: '未提供有效的认证令牌',
           error: 'UNAUTHORIZED',
-          timestamp: toBeijingISOString(new Date())
+          timestamp: toSystemISOString(new Date())
         },
         { status: 401 }
       );
@@ -43,7 +43,7 @@ export async function authMiddleware(request: NextRequest): Promise<NextResponse
         success: false,
         message: '无效的认证令牌',
         error: 'INVALID_TOKEN',
-        timestamp: toBeijingISOString(new Date())
+        timestamp: toSystemISOString(new Date())
       },
       { status: 401 }
     );

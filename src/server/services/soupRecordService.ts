@@ -1,6 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import { CreateSoupRecordRequest, UpdateSoupRecordRequest, SoupRecordResponse, SoupRecordWithDetailsResponse } from '@/types/soupRecord';
-import { getBeijingNow, toBeijingTime, toBeijingISOString, isValidTime } from '@/lib/timeUtils';
+import { getSystemNow, parseSystemTime, toSystemISOString, isValidTime } from '@/lib/timeUtils';
 
 // 创建Prisma客户端
 const prisma = new PrismaClient();
@@ -39,7 +39,7 @@ export class SoupRecordService {
     return {
       data: records.map(record => ({
         id: record.id,
-        drinkTime: toBeijingISOString(record.drinkTime),
+        drinkTime: toSystemISOString(record.drinkTime),
         membershipId: record.membershipId,
         soupId: record.soupId,
         membership: record.membership,
@@ -78,7 +78,7 @@ export class SoupRecordService {
     if (!record) return null;
     return {
       id: record.id,
-      drinkTime: toBeijingISOString(record.drinkTime),
+      drinkTime: toSystemISOString(record.drinkTime),
       membership: record.membership,
       soup: record.soup
     };
@@ -133,7 +133,7 @@ export class SoupRecordService {
     });
     return records.map(record => ({
       id: record.id,
-      drinkTime: toBeijingISOString(record.drinkTime),
+      drinkTime: toSystemISOString(record.drinkTime),
       membershipId: record.membershipId,
       soupId: record.soupId,
       membership: record.membership,
@@ -229,7 +229,7 @@ export class SoupRecordService {
     return {
       data: records.map(record => ({
         id: record.id,
-        drinkTime: toBeijingISOString(record.drinkTime),
+        drinkTime: toSystemISOString(record.drinkTime),
         membershipId: record.membershipId,
         soupId: record.soupId,
         membership: record.membership,
@@ -255,7 +255,7 @@ export class SoupRecordService {
         data: {
           membershipId: data.membershipId,
           soupId: data.soupId,
-          drinkTime: data.drinkTime ? toBeijingTime(data.drinkTime) : getBeijingNow(),
+          drinkTime: data.drinkTime ? parseSystemTime(data.drinkTime) : getSystemNow(),
         },
         include: {
           membership: {
@@ -289,7 +289,7 @@ export class SoupRecordService {
     });
     return {
       id: result.id,
-      drinkTime: toBeijingISOString(result.drinkTime),
+      drinkTime: toSystemISOString(result.drinkTime),
       membership: result.membership,
       soup: result.soup
     };
@@ -306,7 +306,7 @@ export class SoupRecordService {
     }
     const updateData: any = {};
     if (data.soupId !== undefined) updateData.soupId = data.soupId;
-    if (data.drinkTime !== undefined) updateData.drinkTime = toBeijingTime(data.drinkTime);
+    if (data.drinkTime !== undefined) updateData.drinkTime = parseSystemTime(data.drinkTime);
     if (Object.keys(updateData).length === 0) throw new Error('没有提供要更新的字段');
     
     const record = await prisma.soupRecord.update({
@@ -333,7 +333,7 @@ export class SoupRecordService {
     });
     return {
       id: record.id,
-      drinkTime: toBeijingISOString(record.drinkTime),
+      drinkTime: toSystemISOString(record.drinkTime),
       membershipId: record.membershipId,
       soupId: record.soupId,
       membership: record.membership,

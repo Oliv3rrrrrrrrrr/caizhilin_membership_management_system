@@ -246,7 +246,7 @@ export default function NewMembershipPage() {
                     <option value="">请选择卡类型</option>
                     <option value="350卡">350卡</option>
                     <option value="500卡">500卡</option>
-                    <option value="980卡">980卡</option>
+                    <option value="1000卡">1000卡</option>
                   </select>
                   <div className="absolute right-4 top-1/2 transform -translate-y-1/2 pointer-events-none">
                     <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">

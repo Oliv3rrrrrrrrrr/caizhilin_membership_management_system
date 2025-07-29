@@ -19,6 +19,7 @@ import {
 } from 'react-icons/fi';
 import { getSoupRecordById, deleteSoupRecord } from '@/services/soupRecordService';
 import { SoupRecordWithDetailsResponse } from '@/types/soupRecord';
+import { formatSystemTime, formatSystemDate } from '@/lib/timeUtils';
 
 export default function SoupRecordDetailPage() {
   const router = useRouter();
@@ -129,12 +130,8 @@ export default function SoupRecordDetailPage() {
 
   // 格式化时间
   const drinkDate = new Date(record.drinkTime);
-  const formattedDate = drinkDate.toLocaleDateString('zh-CN');
-  const formattedTime = drinkDate.toLocaleTimeString('zh-CN', {
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit'
-  });
+  const formattedDate = formatSystemDate(drinkDate);
+  const formattedTime = formatSystemTime(drinkDate);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
@@ -367,8 +364,8 @@ export default function SoupRecordDetailPage() {
                   <FiCoffee className="text-white text-xl" />
                 </div>
                 <div className="text-left">
-                  <div className="font-semibold text-gray-900 dark:text-white">查看会员记录</div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400">查看所有喝汤记录</div>
+                  <div className="font-semibold text-gray-900 dark:text-white">会员喝汤记录</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">查看该会员所有喝汤记录</div>
                 </div>
               </div>
             </button>

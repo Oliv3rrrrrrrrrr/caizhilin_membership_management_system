@@ -15,10 +15,12 @@ import {
   FiTrendingUp,
   FiTrendingDown,
   FiPackage,
-  FiCreditCard
+  FiCreditCard,
+  FiCheckCircle
 } from 'react-icons/fi';
 import { getMemberships, deleteMembership, searchMemberships, getMembershipStats } from '@/services/membershipService';
 import { MembershipResponse } from '@/types/membership';
+import { formatSystemDate } from '@/lib/timeUtils';
 import Pagination from '@/components/Pagination';
 
 export default function MembershipsPage() {
@@ -36,6 +38,7 @@ export default function MembershipsPage() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [sortField, setSortField] = useState<'name' | 'phone' | 'cardNumber' | 'remainingSoups' | 'issueDate'>('issueDate');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
+  const [successMessage, setSuccessMessage] = useState('');
   // 分页相关
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
@@ -88,6 +91,17 @@ export default function MembershipsPage() {
       setSearchLoading(false);
     }
   };
+
+  // 检查URL参数中的成功消息
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const success = urlParams.get('success');
+    if (success === 'created') {
+      setSuccessMessage('会员创建成功！');
+      window.history.replaceState({}, '', window.location.pathname);
+      setTimeout(() => setSuccessMessage(''), 3000);
+    }
+  }, []);
 
   useEffect(() => {
     const fetchAll = async () => {
@@ -275,6 +289,16 @@ export default function MembershipsPage() {
       </div>
 
       <div className="max-w-7xl mx-auto px-6 py-8">
+        {/* 成功消息 */}
+        {successMessage && (
+          <div className="mb-8 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-2xl p-6">
+            <div className="flex items-center">
+              <FiCheckCircle className="text-green-500 mr-3 text-xl" />
+              <p className="text-green-600 dark:text-green-400 font-medium">{successMessage}</p>
+            </div>
+          </div>
+        )}
+
         {/* 统计卡片 */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 border border-gray-100 dark:border-gray-700 hover:shadow-xl transition-all duration-300 transform hover:scale-105">
@@ -576,7 +600,7 @@ export default function MembershipsPage() {
               </p>
               <button
                 onClick={() => router.push('/memberships/new')}
-                className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-8 py-4 rounded-xl font-medium transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105"
+                className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-8 py-4 rounded-xl font-medium transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 cursor-pointer"
               >
                 <FiPlus className="inline mr-2" />
                 添加第一个会员
@@ -702,7 +726,7 @@ export default function MembershipsPage() {
                         </span>
                       </td>
                       <td className="px-8 py-6 whitespace-nowrap text-lg text-gray-500 dark:text-gray-400">
-                        {new Date(membership.issueDate).toLocaleDateString('zh-CN')}
+                        {formatSystemDate(membership.issueDate)}
                       </td>
                       <td className="px-8 py-6 whitespace-nowrap text-right text-sm font-medium">
                         <div className="flex items-center justify-end space-x-3">

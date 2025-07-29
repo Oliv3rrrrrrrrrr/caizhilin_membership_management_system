@@ -23,6 +23,7 @@ import { getMembershipById } from '@/services/membershipService';
 import { getSoupRecordsByMembershipId, deleteSoupRecord } from '@/services/soupRecordService';
 import { MembershipResponse } from '@/types/membership';
 import { SoupRecordResponse } from '@/types/soupRecord';
+import { formatSystemTime, formatSystemDate } from '@/lib/timeUtils';
 import Pagination from '@/components/Pagination';
 
 export default function MembershipSoupRecordsPage() {
@@ -502,8 +503,8 @@ export default function MembershipSoupRecordsPage() {
               )}
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+            <div>
+              <table className="w-full divide-y divide-gray-200 dark:divide-gray-700">
                 <thead className="bg-gray-50 dark:bg-gray-700">
                   <tr>
                     <th 
@@ -561,13 +562,10 @@ export default function MembershipSoupRecordsPage() {
                           <FiClock className="text-gray-400 mr-2" />
                           <div>
                             <div className="text-lg font-medium text-gray-900 dark:text-white">
-                              {new Date(record.drinkTime).toLocaleDateString('zh-CN')}
+                              {formatSystemDate(record.drinkTime)}
                             </div>
                             <div className="text-sm text-gray-500 dark:text-gray-400">
-                              {new Date(record.drinkTime).toLocaleTimeString('zh-CN', {
-                                hour: '2-digit',
-                                minute: '2-digit'
-                              })}
+                              {formatSystemTime(record.drinkTime)}
                             </div>
                           </div>
                         </div>

@@ -20,7 +20,7 @@ import {
 } from 'react-icons/fi';
 import { getSoupRecords, deleteSoupRecord, getSoupRecordStats, searchSoupRecords } from '@/services/soupRecordService';
 import { SoupRecordResponse } from '@/types/soupRecord';
-import { formatBeijingTime } from '@/lib/timeUtils';
+import { formatSystemTime, formatSystemDate } from '@/lib/timeUtils';
 import Pagination from '@/components/Pagination';
 
 export default function SoupRecordsPage() {
@@ -562,10 +562,10 @@ export default function SoupRecordsPage() {
                           <td className="px-8 py-6 whitespace-nowrap">
                             <div>
                               <div className="text-lg font-semibold text-gray-900 dark:text-white">
-                                {formatBeijingTime(record.drinkTime)}
+                                {formatSystemTime(record.drinkTime)}
                               </div>
                               <div className="text-sm text-gray-500 dark:text-gray-400">
-                                {new Date(record.drinkTime).toLocaleDateString('zh-CN')}
+                                {formatSystemDate(record.drinkTime)}
                               </div>
                             </div>
                           </td>
@@ -659,11 +659,11 @@ export default function SoupRecordsPage() {
               </p>
               {!searchTerm && !filterSoupType && !filterDateRange && (
                 <button
-                  onClick={() => router.push('/memberships')}
-                  className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white px-8 py-4 rounded-xl font-medium transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105"
+                  onClick={() => router.push('/soup-records/new')}
+                  className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white px-8 py-4 rounded-xl font-medium transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 cursor-pointer"
                 >
                   <FiUser className="inline mr-2" />
-                  查看会员列表
+                  新增喝汤记录
                 </button>
               )}
             </div>
@@ -766,11 +766,11 @@ export default function SoupRecordsPage() {
                       <td className="px-8 py-6 whitespace-nowrap">
                         <div>
                           <div className="text-lg font-semibold text-gray-900 dark:text-white">
-                            {formatBeijingTime(record.drinkTime)}
+                            {formatSystemTime(record.drinkTime)}
                           </div>
-                          <div className="text-sm text-gray-500 dark:text-gray-400">
-                            {new Date(record.drinkTime).toLocaleDateString('zh-CN')}
-                          </div>
+                                                        <div className="text-sm text-gray-500 dark:text-gray-400">
+                                {formatSystemDate(record.drinkTime)}
+                              </div>
                         </div>
                       </td>
                       <td className="px-8 py-6 whitespace-nowrap">

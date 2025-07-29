@@ -304,7 +304,7 @@ export default function SoupsPage() {
               {!searchTerm && !filterType && (
                 <button
                   onClick={() => router.push("/soups/new")}
-                  className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white px-8 py-4 rounded-xl font-medium transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105"
+                  className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white px-8 py-4 rounded-xl font-medium transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 cursor-pointer"
                 >
                   <FiPlus className="inline mr-2" />
                   添加第一个汤品

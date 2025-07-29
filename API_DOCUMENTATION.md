@@ -6,7 +6,7 @@
 1. [基础信息](#基础信息)
 2. [通用响应格式](#通用响应格式)
 3. [认证与权限](#认证与权限)
-4. [管理员管理](#管理员管理)
+4. [管理员认证](#管理员认证)
 5. [会员管理](#会员管理)
 6. [汤品管理](#汤品管理)
 7. [喝汤记录管理](#喝汤记录管理)
@@ -48,13 +48,13 @@
 ---
 
 ## 认证与权限
-- 除 `POST /api/admin/login`、`POST /api/admin` 外，所有接口需在 Header 携带 `Authorization: Bearer <token>`
+- 除 `POST /api/admin/login` 外，所有接口需在 Header 携带 `Authorization: Bearer <token>`
 - Token 过期/无效时返回 401，error: `UNAUTHORIZED` 或 `INVALID_TOKEN`
-- 管理员操作需有管理员权限
+- 管理员账户通过数据库种子脚本预先创建，不提供管理接口
 
 ---
 
-## 管理员管理
+## 管理员认证
 ### 1. 管理员登录
 - **URL**: `POST /api/admin/login`
 - **请求体**：
@@ -67,14 +67,7 @@
   |--------|--------|--------------|
   | token  | string | JWT Token    |
   | admin  | object | 管理员信息   |
-
-### 2. 管理员增删改查
-- `GET /api/admin` 获取管理员列表
-- `POST /api/admin` 创建管理员
-- `GET /api/admin/{id}` 获取管理员详情
-- `PUT /api/admin/{id}` 更新管理员
-- `DELETE /api/admin/{id}` 删除管理员
-- **所有字段类型、权限、业务规则详见数据库结构与服务实现**
+- **说明**：管理员账户通过数据库种子脚本预先创建，不提供管理接口
 
 ---
 
@@ -106,17 +99,78 @@
 
 ### 2. 创建会员
 - **URL**: `POST /api/memberships`
-- **请求体**：同上表，除 id/issueDate 自动生成
-- **业务规则**：手机号唯一，卡号自动生成，剩余汤品为非负整数
+- **请求体**：
+  | 字段           | 类型   | 必填 | 说明         |
+  |----------------|--------|------|--------------|
+  | name           | string | 是   | 姓名         |
+  | phone          | string | 是   | 手机号       |
+  | cardType       | string | 是   | 卡类型       |
+  | remainingSoups | number | 是   | 剩余汤品次数 |
+- **响应**：
+  | 字段           | 类型   | 说明         |
+  |----------------|--------|--------------|
+  | id             | number | 会员ID       |
+  | name           | string | 姓名         |
+  | phone          | string | 手机号       |
+  | cardNumber     | string | 卡号         |
+  | cardType       | string | 卡类型       |
+  | issueDate      | string | 发卡日期     |
+  | remainingSoups | number | 剩余汤品次数 |
 
-### 3. 获取/更新/删除会员
-- `GET /api/memberships/{id}`
-- `PUT /api/memberships/{id}`
-- `DELETE /api/memberships/{id}`
-- **PUT 请求体**：可更新 name/cardType/remainingSoups
-- **业务规则**：手机号不可更改
+### 3. 获取会员详情
+- **URL**: `GET /api/memberships/{id}`
+- **参数**：
+  | 参数 | 类型   | 必填 | 说明       |
+  |------|--------|------|------------|
+  | id   | number | 是   | 会员ID     |
+- **响应**：
+  | 字段           | 类型   | 说明         |
+  |----------------|--------|--------------|
+  | id             | number | 会员ID       |
+  | name           | string | 姓名         |
+  | phone          | string | 手机号       |
+  | cardNumber     | string | 卡号         |
+  | cardType       | string | 卡类型       |
+  | issueDate      | string | 发卡日期     |
+  | remainingSoups | number | 剩余汤品次数 |
 
-### 4. 会员统计
+### 4. 更新会员
+- **URL**: `PUT /api/memberships/{id}`
+- **参数**：
+  | 参数 | 类型   | 必填 | 说明       |
+  |------|--------|------|------------|
+  | id   | number | 是   | 会员ID     |
+- **请求体**：
+  | 字段           | 类型   | 必填 | 说明         |
+  |----------------|--------|------|--------------|
+  | name           | string | 否   | 姓名         |
+  | phone          | string | 否   | 手机号       |
+  | cardType       | string | 否   | 卡类型       |
+  | remainingSoups | number | 否   | 剩余汤品次数 |
+- **响应**：
+  | 字段           | 类型   | 说明         |
+  |----------------|--------|--------------|
+  | id             | number | 会员ID       |
+  | name           | string | 姓名         |
+  | phone          | string | 手机号       |
+  | cardNumber     | string | 卡号         |
+  | cardType       | string | 卡类型       |
+  | issueDate      | string | 发卡日期     |
+  | remainingSoups | number | 剩余汤品次数 |
+
+### 5. 删除会员
+- **URL**: `DELETE /api/memberships/{id}`
+- **参数**：
+  | 参数 | 类型   | 必填 | 说明       |
+  |------|--------|------|------------|
+  | id   | number | 是   | 会员ID     |
+- **响应**：
+  | 字段     | 类型   | 说明         |
+  |----------|--------|--------------|
+  | success  | boolean| 删除是否成功 |
+  | message  | string | 操作结果描述 |
+
+### 6. 会员统计
 - **URL**: `GET /api/memberships/stats`
 - **响应**：
   | 字段         | 类型   | 说明         |
@@ -126,8 +180,15 @@
   | inactive     | number | 待续费会员数（剩余=0）|
   | cardTypeCount| number | 卡类型种类数 |
 
-### 5. 会员搜索（分页）
+### 7. 会员搜索（分页）
 - **URL**: `GET /api/search?q=关键词&type=members&page=1&pageSize=10`
+- **参数**：
+  | 参数     | 类型   | 必填 | 说明         |
+  |----------|--------|------|--------------|
+  | q        | string | 是   | 搜索关键词   |
+  | type     | string | 是   | 搜索类型，固定为"members" |
+  | page     | number | 否   | 页码，默认1  |
+  | pageSize | number | 否   | 每页数量，默认10 |
 - **响应**：
   | 字段     | 类型   | 说明         |
   |----------|--------|--------------|
@@ -144,14 +205,70 @@
 - **响应**：
   | 字段   | 类型   | 说明         |
   |--------|--------|--------------|
+  | data   | array  | 汤品对象数组 |
+- **汤品对象字段**：
+  | 字段   | 类型   | 说明         |
+  |--------|--------|--------------|
   | id     | number | 汤品ID       |
   | name   | string | 汤品名称     |
   | type   | string | 汤品类型     |
 
-### 2. 创建/更新/删除汤品
-- `POST /api/soup` 创建
-- `PUT /api/soup/{id}` 更新
-- `DELETE /api/soup/{id}` 删除
+### 2. 创建汤品
+- **URL**: `POST /api/soup`
+- **请求体**：
+  | 字段   | 类型   | 必填 | 说明         |
+  |--------|--------|------|--------------|
+  | name   | string | 是   | 汤品名称     |
+  | type   | string | 是   | 汤品类型     |
+- **响应**：
+  | 字段   | 类型   | 说明         |
+  |--------|--------|--------------|
+  | id     | number | 汤品ID       |
+  | name   | string | 汤品名称     |
+  | type   | string | 汤品类型     |
+
+### 3. 获取汤品详情
+- **URL**: `GET /api/soup/{id}`
+- **参数**：
+  | 参数 | 类型   | 必填 | 说明       |
+  |------|--------|------|------------|
+  | id   | number | 是   | 汤品ID     |
+- **响应**：
+  | 字段   | 类型   | 说明         |
+  |--------|--------|--------------|
+  | id     | number | 汤品ID       |
+  | name   | string | 汤品名称     |
+  | type   | string | 汤品类型     |
+
+### 4. 更新汤品
+- **URL**: `PUT /api/soup/{id}`
+- **参数**：
+  | 参数 | 类型   | 必填 | 说明       |
+  |------|--------|------|------------|
+  | id   | number | 是   | 汤品ID     |
+- **请求体**：
+  | 字段   | 类型   | 必填 | 说明         |
+  |--------|--------|------|--------------|
+  | name   | string | 否   | 汤品名称     |
+  | type   | string | 否   | 汤品类型     |
+- **响应**：
+  | 字段   | 类型   | 说明         |
+  |--------|--------|--------------|
+  | id     | number | 汤品ID       |
+  | name   | string | 汤品名称     |
+  | type   | string | 汤品类型     |
+
+### 5. 删除汤品
+- **URL**: `DELETE /api/soup/{id}`
+- **参数**：
+  | 参数 | 类型   | 必填 | 说明       |
+  |------|--------|------|------------|
+  | id   | number | 是   | 汤品ID     |
+- **响应**：
+  | 字段     | 类型   | 说明         |
+  |----------|--------|--------------|
+  | success  | boolean| 删除是否成功 |
+  | message  | string | 操作结果描述 |
 - **业务规则**：如有关联喝汤记录则禁止删除
 
 ---
@@ -162,8 +279,8 @@
 - **参数**：
   | 参数         | 类型   | 必填 | 说明         |
   |--------------|--------|------|--------------|
-  | page         | number | 否   | 页码         |
-  | pageSize     | number | 否   | 每页数量     |
+  | page         | number | 否   | 页码，默认1  |
+  | pageSize     | number | 否   | 每页数量，默认10 |
   | membershipId | number | 否   | 按会员筛选   |
 - **响应**：
   | 字段     | 类型   | 说明         |
@@ -176,20 +293,76 @@
   | 字段         | 类型   | 说明         |
   |--------------|--------|--------------|
   | id           | number | 记录ID       |
+  | drinkTime    | string | 喝汤时间     |
+  | membershipId | number | 会员ID       |
+  | soupId       | number | 汤品ID       |
   | membership   | object | 会员信息     |
   | soup         | object | 汤品信息     |
-  | drinkTime    | string | 喝汤时间     |
 
-### 2. 创建/更新/删除喝汤记录
-- `POST /api/soup-record` 创建
-- `PUT /api/soup-record/{id}` 更新
-- `DELETE /api/soup-record/{id}` 删除
-- **业务规则**：创建时自动扣减会员剩余次数，校验剩余次数充足，所有操作需事务保证一致性
+### 2. 创建喝汤记录
+- **URL**: `POST /api/soup-record`
+- **请求体**：
+  | 字段         | 类型   | 必填 | 说明         |
+  |--------------|--------|------|--------------|
+  | membershipId | number | 是   | 会员ID       |
+  | soupId       | number | 是   | 汤品ID       |
+  | drinkTime    | string | 否   | 喝汤时间，默认当前时间 |
+- **响应**：
+  | 字段         | 类型   | 说明         |
+  |--------------|--------|--------------|
+  | id           | number | 记录ID       |
+  | drinkTime    | string | 喝汤时间     |
+  | membership   | object | 会员信息     |
+  | soup         | object | 汤品信息     |
 
 ### 3. 获取喝汤记录详情
-- `GET /api/soup-record/{id}`
+- **URL**: `GET /api/soup-record/{id}`
+- **参数**：
+  | 参数 | 类型   | 必填 | 说明       |
+  |------|--------|------|------------|
+  | id   | number | 是   | 记录ID     |
+- **响应**：
+  | 字段         | 类型   | 说明         |
+  |--------------|--------|--------------|
+  | id           | number | 记录ID       |
+  | drinkTime    | string | 喝汤时间     |
+  | membership   | object | 会员信息     |
+  | soup         | object | 汤品信息     |
 
-### 4. 喝汤记录统计
+### 4. 更新喝汤记录
+- **URL**: `PUT /api/soup-record/{id}`
+- **参数**：
+  | 参数 | 类型   | 必填 | 说明       |
+  |------|--------|------|------------|
+  | id   | number | 是   | 记录ID     |
+- **请求体**：
+  | 字段         | 类型   | 必填 | 说明         |
+  |--------------|--------|------|--------------|
+  | soupId       | number | 否   | 汤品ID       |
+  | drinkTime    | string | 否   | 喝汤时间     |
+- **响应**：
+  | 字段         | 类型   | 说明         |
+  |--------------|--------|--------------|
+  | id           | number | 记录ID       |
+  | drinkTime    | string | 喝汤时间     |
+  | membershipId | number | 会员ID       |
+  | soupId       | number | 汤品ID       |
+  | membership   | object | 会员信息     |
+  | soup         | object | 汤品信息     |
+
+### 5. 删除喝汤记录
+- **URL**: `DELETE /api/soup-record/{id}`
+- **参数**：
+  | 参数 | 类型   | 必填 | 说明       |
+  |------|--------|------|------------|
+  | id   | number | 是   | 记录ID     |
+- **响应**：
+  | 字段     | 类型   | 说明         |
+  |----------|--------|--------------|
+  | success  | boolean| 删除是否成功 |
+  | message  | string | 操作结果描述 |
+
+### 6. 喝汤记录统计
 - **URL**: `GET /api/soup-records/stats`
 - **响应**：
   | 字段         | 类型   | 说明         |
@@ -199,8 +372,14 @@
   | week         | number | 本周记录数   |
   | uniqueMembers| number | 参与会员数   |
 
-### 5. 喝汤记录搜索（分页）
-- **URL**: `GET /api/soup-records/search?q=关键词&page=1&pageSize=10`
+### 7. 喝汤记录搜索（分页）
+- **URL**: `GET /api/soup-records/search`
+- **参数**：
+  | 参数     | 类型   | 必填 | 说明         |
+  |----------|--------|------|--------------|
+  | q        | string | 是   | 搜索关键词   |
+  | page     | number | 否   | 页码，默认1  |
+  | pageSize | number | 否   | 每页数量，默认10 |
 - **响应**：
   | 字段     | 类型   | 说明         |
   |----------|--------|--------------|
@@ -208,6 +387,7 @@
   | total    | number | 匹配总数     |
   | page     | number | 当前页码     |
   | pageSize | number | 每页数量     |
+- **业务规则**：创建时自动扣减会员剩余次数，校验剩余次数充足，所有操作需事务保证一致性
 
 ---
 
@@ -234,9 +414,17 @@
 ---
 
 ## 统计信息
-- `GET /api/stats` 仪表盘总览统计（会员数、今日新增、汤品数、今日喝汤、喝汤总数、管理员数）
-- `GET /api/memberships/stats` 会员统计
-- `GET /api/soup-records/stats` 喝汤记录统计
+### 1. 仪表盘总览统计
+- **URL**: `GET /api/stats`
+- **响应**：
+  | 字段             | 类型   | 说明         |
+  |------------------|--------|--------------|
+  | memberCount      | number | 总会员数     |
+  | todayNewMembers  | number | 今日新增会员数 |
+  | soupCount        | number | 总汤品数     |
+  | todaySoupRecords | number | 今日喝汤次数 |
+  | soupRecordCount  | number | 总喝汤记录数 |
+  | adminCount       | number | 总管理员数   |
 
 ---
 
@@ -276,10 +464,21 @@
 ---
 
 ## 时间处理说明
-- 所有时间均为北京时间 (UTC+8)
-- API响应时间戳为ISO格式
-- "今日"统计基于北京时间当天0点
-- 所有时间字段均为 ISO 8601 字符串，前端无需额外转换
+- **系统时区配置**：所有时间均为系统配置时区时间（默认北京时间 UTC+8）
+- **环境变量配置**：
+  - 后端：`SYSTEM_TIMEZONE=Asia/Shanghai`
+  - 前端：`NEXT_PUBLIC_SYSTEM_TIMEZONE=Asia/Shanghai`
+- **时区处理逻辑**：
+  - 数据库存储：完整的时间信息（包含时区）
+  - 前端显示：统一显示为系统时区时间，格式为 `YYYY-MM-DD HH:mm`
+  - 时区转换：自动处理不同时区用户访问时的显示问题
+- **时间格式**：
+  - API响应：ISO 8601 字符串格式
+  - 前端显示：`YYYY-MM-DD HH:mm`（不显示秒数）
+  - 输入格式：`datetime-local`（只到分钟）
+- **统计基准**："今日"统计基于系统时区当天0点
+- **支持时区**：Asia/Shanghai（北京时间）、Australia/Sydney（悉尼时间）等
+- **跨时区访问**：系统自动处理时区转换，确保全球用户看到一致的时间
 
 ---
 
@@ -288,7 +487,7 @@
 ```bash
 curl -X POST http://localhost:3000/api/admin/login \
   -H "Content-Type: application/json" \
-  -d '{"phone":"18029253555","password":"123456"}'
+  -d '{"phone":"13800138000","password":"123456"}'
 ```
 ### 使用Token访问受保护接口
 ```bash

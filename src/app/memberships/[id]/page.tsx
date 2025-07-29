@@ -19,6 +19,7 @@ import {
 } from 'react-icons/fi';
 import { getMembershipById } from '@/services/membershipService';
 import { MembershipResponse } from '@/types/membership';
+import { formatSystemDate } from '@/lib/timeUtils';
 
 export default function MembershipDetailPage() {
   const router = useRouter();
@@ -318,7 +319,7 @@ export default function MembershipDetailPage() {
                 <div className="flex-1">
                   <div className="text-sm text-gray-500 dark:text-gray-400 mb-1">发卡日期</div>
                   <div className="font-semibold text-gray-900 dark:text-white text-lg">
-                    {new Date(membership.issueDate).toLocaleDateString('zh-CN')}
+                    {formatSystemDate(membership.issueDate)}
                   </div>
                 </div>
               </div>
@@ -374,8 +375,8 @@ export default function MembershipDetailPage() {
                   <FiCoffee className="text-white text-xl" />
                 </div>
                 <div className="text-left">
-                  <div className="font-semibold text-gray-900 dark:text-white">喝汤记录</div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400">查看使用记录</div>
+                  <div className="font-semibold text-gray-900 dark:text-white">会员喝汤记录</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">查看该会员所有喝汤记录</div>
                 </div>
               </div>
             </button>
