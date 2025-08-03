@@ -240,11 +240,10 @@ export default function EditSoupPage() {
                     type="text"
                     value={formData.name}
                     onChange={(e) => handleInputChange("name", e.target.value)}
-                    className={`w-full px-4 py-4 border-2 rounded-xl focus:ring-4 focus:ring-orange-500/20 focus:border-orange-500 transition-all duration-200 text-lg ${
-                      errors.name
+                    className={`w-full px-4 py-4 border-2 rounded-xl focus:ring-4 focus:ring-orange-500/20 focus:border-orange-500 transition-all duration-200 text-lg ${errors.name
                         ? "border-red-300 dark:border-red-600 bg-red-50 dark:bg-red-900/20"
                         : "border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 hover:border-gray-300 dark:hover:border-gray-500"
-                    } text-gray-900 dark:text-white`}
+                      } text-gray-900 dark:text-white`}
                     placeholder="请输入汤品名称"
                   />
                   {errors.name && (
@@ -271,11 +270,10 @@ export default function EditSoupPage() {
                     type="text"
                     value={formData.type}
                     onChange={(e) => handleInputChange("type", e.target.value)}
-                    className={`w-full px-4 py-4 border-2 rounded-xl focus:ring-4 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all duration-200 text-lg ${
-                      errors.type
+                    className={`w-full px-4 py-4 border-2 rounded-xl focus:ring-4 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all duration-200 text-lg ${errors.type
                         ? "border-red-300 dark:border-red-600 bg-red-50 dark:bg-red-900/20"
                         : "border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 hover:border-gray-300 dark:hover:border-gray-500"
-                    } text-gray-900 dark:text-white`}
+                      } text-gray-900 dark:text-white`}
                     placeholder="请输入汤品类型"
                   />
                   {errors.type && (

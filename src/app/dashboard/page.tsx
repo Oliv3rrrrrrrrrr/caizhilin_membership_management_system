@@ -25,11 +25,11 @@ export default function DashboardPage() {
   }, [router]);
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <Navbar />
-      <div className="flex flex-1">
-        <Sidebar />
-        <main className="flex-1 p-8 bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen flex">
+      <Sidebar />
+      <div className="flex-1 flex flex-col ml-56">
+        <Navbar />
+        <main className="flex-1 p-8 bg-gray-50 dark:bg-gray-900 overflow-auto">
           <StatsCards />
           <QuickLinks />
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-8">

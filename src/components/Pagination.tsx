@@ -69,17 +69,16 @@ export default function Pagination({
             p === '...'
               ? <span key={idx} className="px-2 text-gray-400">...</span>
               : <button
-                  key={p}
-                  className={`w-9 h-9 rounded-full font-bold transition-all duration-150 text-base focus:outline-none focus:ring-2 focus:ring-blue-400 ${
-                    p === page
-                      ? 'bg-blue-600 text-white shadow-lg scale-110 border-2 border-blue-400'
-                      : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-blue-100 dark:hover:bg-blue-800 hover:text-blue-600 dark:hover:text-blue-300 cursor-pointer'
+                key={p}
+                className={`w-9 h-9 rounded-full font-bold transition-all duration-150 text-base focus:outline-none focus:ring-2 focus:ring-blue-400 ${p === page
+                    ? 'bg-blue-600 text-white shadow-lg scale-110 border-2 border-blue-400'
+                    : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-blue-100 dark:hover:bg-blue-800 hover:text-blue-600 dark:hover:text-blue-300 cursor-pointer'
                   }`}
-                  onClick={() => onPageChange(Number(p))}
-                  disabled={p === page}
-                >
-                  {p}
-                </button>
+                onClick={() => onPageChange(Number(p))}
+                disabled={p === page}
+              >
+                {p}
+              </button>
           )}
         </div>
         <button

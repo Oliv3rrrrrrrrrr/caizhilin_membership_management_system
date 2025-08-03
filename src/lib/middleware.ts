@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyToken } from '@/lib/auth';
-import { toSystemISOString } from '@/lib/timeUtils';
+
 
 // 扩展请求类型以包含用户信息
 interface AuthenticatedRequest extends NextRequest {
@@ -12,7 +12,7 @@ export async function authMiddleware(request: NextRequest): Promise<NextResponse
   try {
     // 1. 获取认证头
     const authHeader = request.headers.get('authorization');
-    
+
     // 2. 如果认证头不存在或不以Bearer开头，则返回401错误
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
       return NextResponse.json(
@@ -20,7 +20,7 @@ export async function authMiddleware(request: NextRequest): Promise<NextResponse
           success: false,
           message: '未提供有效的认证令牌',
           error: 'UNAUTHORIZED',
-          timestamp: toSystemISOString(new Date())
+          timestamp: new Date().toISOString()
         },
         { status: 401 }
       );
@@ -30,10 +30,10 @@ export async function authMiddleware(request: NextRequest): Promise<NextResponse
     const token = authHeader.substring(7);
     // 4. 验证token
     const decoded = verifyToken(token);
-    
+
     // 5. 将用户信息添加到请求中
     (request as AuthenticatedRequest).user = decoded;
-    
+
     // 6. 继续处理请求
     return null;
   } catch (error) {
@@ -43,7 +43,7 @@ export async function authMiddleware(request: NextRequest): Promise<NextResponse
         success: false,
         message: '无效的认证令牌',
         error: 'INVALID_TOKEN',
-        timestamp: toSystemISOString(new Date())
+        timestamp: new Date().toISOString()
       },
       { status: 401 }
     );

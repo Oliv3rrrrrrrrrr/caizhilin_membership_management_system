@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import LoginForm from '@/components/LoginForm';
 import { login } from '@/services/authService';
 import { FiShield } from 'react-icons/fi';
-import { getSystemNow } from '@/lib/timeUtils';
+
 
 export default function LoginPage() {
   const [loading, setLoading] = useState(false);
@@ -39,7 +39,7 @@ export default function LoginPage() {
         </div>
         <LoginForm onSubmit={handleLogin} loading={loading} error={error} />
         <div className="mt-10 text-center text-xs text-gray-400">
-          © {getSystemNow().getFullYear()} 采芝林养生炖汤馆 版权所有
+          © {new Date().getFullYear()} 采芝林养生炖汤馆 版权所有
         </div>
       </div>
     </div>

@@ -46,23 +46,23 @@ export async function PUT(request: NextRequest) {
 
     // 2. 解析请求体
     const body = await request.json();
-    
+
     // 3. 验证设置数据
     const updatedSettings = { ...defaultSettings, ...body };
-    
+
     // 4. 这里应该保存到数据库或配置文件
     // 目前只是返回更新后的设置
-    
+
     // 5. 返回成功响应
     return ApiResponseBuilder.success(updatedSettings, '系统设置更新成功');
 
   } catch (error) {
     console.error('更新系统设置失败:', error);
-    
+
     if (error instanceof Error) {
       return ApiResponseBuilder.badRequest(error.message);
     }
-    
+
     return ApiResponseBuilder.serverError('更新系统设置失败');
   }
 } 

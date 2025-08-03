@@ -2,7 +2,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import { FiHome, FiUsers, FiCoffee, FiClipboard, FiSettings, FiShield, FiBarChart } from 'react-icons/fi';
 
 const menu = [
-  { label: '仪表盘', icon: <FiHome />, path: '/dashboard' },
+  { label: '主页', icon: <FiHome />, path: '/dashboard' },
   { label: '会员管理', icon: <FiUsers />, path: '/memberships' },
   { label: '汤品管理', icon: <FiCoffee />, path: '/soups' },
   { label: '喝汤记录', icon: <FiClipboard />, path: '/soup-records' },
@@ -16,7 +16,7 @@ export default function Sidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="w-56 h-full bg-white dark:bg-gray-900 shadow-lg flex flex-col py-6">
+    <aside className="w-56 h-screen bg-white dark:bg-gray-900 shadow-lg flex flex-col py-6 fixed left-0 top-0 z-10">
       <nav className="flex-1">
         {menu.map((item) => (
           <button
@@ -33,7 +33,7 @@ export default function Sidebar() {
           </button>
         ))}
       </nav>
-      <div className="px-6 mt-auto text-xs text-gray-400 dark:text-gray-600 select-none">© 采芝林 2025</div>
+      <div className="px-6 mt-auto text-xs text-gray-400 dark:text-gray-600 select-none text-center">© 采芝林 2025</div>
     </aside>
   );
 }

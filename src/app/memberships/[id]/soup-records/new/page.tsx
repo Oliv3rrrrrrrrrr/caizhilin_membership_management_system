@@ -17,17 +17,15 @@ import { getAllSoups } from '@/services/soupService';
 import { MembershipResponse } from '@/types/membership';
 import { SoupResponse } from '@/types/soup';
 import { CreateSoupRecordRequest } from '@/types/soupRecord';
-import { getSystemNow, formatSystemTime } from '@/lib/timeUtils';
-import dayjs from 'dayjs';
-import utc from 'dayjs/plugin/utc';
-import timezone from 'dayjs/plugin/timezone';
-
-dayjs.extend(utc);
-dayjs.extend(timezone);
 
 function getSystemDateTimeLocal(): string {
-  const systemTimezone = process.env.NEXT_PUBLIC_SYSTEM_TIMEZONE || 'Asia/Shanghai';
-  return dayjs().tz(systemTimezone).format('YYYY-MM-DDTHH:mm');
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  const hours = String(now.getHours()).padStart(2, '0');
+  const minutes = String(now.getMinutes()).padStart(2, '0');
+  return `${year}-${month}-${day}T${hours}:${minutes}`;
 }
 
 export default function NewSoupRecordPage() {
@@ -47,7 +45,7 @@ export default function NewSoupRecordPage() {
     drinkTime: getSystemDateTimeLocal()
   });
 
-  const [errors, setErrors] = useState<{[key: string]: string}>({});
+  const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
   // 获取会员信息和汤品列表
   useEffect(() => {
@@ -68,7 +66,7 @@ export default function NewSoupRecordPage() {
 
         setMembership(membershipData);
         setSoups(soupsData);
-        
+
         // 设置默认汤品
         if (soupsData.length > 0) {
           setFormData(prev => ({ ...prev, soupId: soupsData[0].id }));
@@ -87,7 +85,7 @@ export default function NewSoupRecordPage() {
 
   // 表单验证
   const validateForm = (): boolean => {
-    const newErrors: {[key: string]: string} = {};
+    const newErrors: { [key: string]: string } = {};
 
     if (!formData.soupId) {
       newErrors.soupId = '请选择汤品';
@@ -98,9 +96,9 @@ export default function NewSoupRecordPage() {
     } else {
       // 将datetime-local格式转换为Date对象进行比较
       const selectedTime = new Date(formData.drinkTime + ':00'); // 添加秒数
-      const systemNow = getSystemNow();
-      
-      if (selectedTime > systemNow) {
+      const now = new Date(); // Changed from getSystemNow()
+
+      if (selectedTime > now) {
         newErrors.drinkTime = '喝汤时间不能晚于当前时间';
       }
     }
@@ -302,11 +300,10 @@ export default function NewSoupRecordPage() {
                   <select
                     value={formData.soupId}
                     onChange={(e) => handleInputChange('soupId', parseInt(e.target.value))}
-                    className={`w-full px-4 py-4 border-2 rounded-xl focus:ring-4 focus:ring-orange-500/20 focus:border-orange-500 transition-all duration-200 text-lg appearance-none cursor-pointer ${
-                      errors.soupId
-                        ? 'border-red-300 dark:border-red-600 bg-red-50 dark:bg-red-900/20'
-                        : 'border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 hover:border-gray-300 dark:hover:border-gray-500'
-                    } text-gray-900 dark:text-white`}
+                    className={`w-full px-4 py-4 border-2 rounded-xl focus:ring-4 focus:ring-orange-500/20 focus:border-orange-500 transition-all duration-200 text-lg appearance-none cursor-pointer ${errors.soupId
+                      ? 'border-red-300 dark:border-red-600 bg-red-50 dark:bg-red-900/20'
+                      : 'border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 hover:border-gray-300 dark:hover:border-gray-500'
+                      } text-gray-900 dark:text-white`}
                   >
                     <option value={0}>请选择汤品</option>
                     {soups.map(soup => (
@@ -345,11 +342,10 @@ export default function NewSoupRecordPage() {
                     type="datetime-local"
                     value={formData.drinkTime}
                     onChange={(e) => handleInputChange('drinkTime', e.target.value)}
-                    className={`w-full px-4 py-4 border-2 rounded-xl focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200 text-lg ${
-                      errors.drinkTime
-                        ? 'border-red-300 dark:border-red-600 bg-red-50 dark:bg-red-900/20'
-                        : 'border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 hover:border-gray-300 dark:hover:border-gray-500'
-                    } text-gray-900 dark:text-white`}
+                    className={`w-full px-4 py-4 border-2 rounded-xl focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200 text-lg ${errors.drinkTime
+                      ? 'border-red-300 dark:border-red-600 bg-red-50 dark:bg-red-900/20'
+                      : 'border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 hover:border-gray-300 dark:hover:border-gray-500'
+                      } text-gray-900 dark:text-white`}
                   />
                   {errors.drinkTime && (
                     <div className="absolute right-3 top-1/2 transform -translate-y-1/2">

@@ -62,11 +62,11 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     console.error('创建喝汤记录失败:', error);
-    
+
     if (error instanceof Error) {
       return ApiResponseBuilder.badRequest(error.message);
     }
-    
+
     return ApiResponseBuilder.serverError('创建喝汤记录失败');
   }
 } 

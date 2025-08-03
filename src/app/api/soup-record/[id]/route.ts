@@ -66,14 +66,14 @@ export async function PUT(
 
   } catch (error) {
     console.error('更新喝汤记录失败:', error);
-    
+
     if (error instanceof Error) {
       if (error.message === '喝汤记录不存在') {
         return ApiResponseBuilder.notFound(error.message);
       }
       return ApiResponseBuilder.badRequest(error.message);
     }
-    
+
     return ApiResponseBuilder.serverError('更新喝汤记录失败');
   }
 }
@@ -102,14 +102,14 @@ export async function DELETE(
 
   } catch (error) {
     console.error('删除喝汤记录失败:', error);
-    
+
     if (error instanceof Error) {
       if (error.message === '喝汤记录不存在') {
         return ApiResponseBuilder.notFound(error.message);
       }
       return ApiResponseBuilder.badRequest(error.message);
     }
-    
+
     return ApiResponseBuilder.serverError('删除喝汤记录失败');
   }
 } 

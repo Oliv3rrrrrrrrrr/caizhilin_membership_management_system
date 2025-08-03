@@ -13,7 +13,6 @@ import {
   FiHome,
   FiBarChart,
   FiPackage,
-  FiCheckCircle,
 } from "react-icons/fi";
 import { getAllSoups, deleteSoup } from "@/services/soupService";
 import { SoupResponse } from "@/types/soup";
@@ -21,18 +20,20 @@ import Pagination from "@/components/Pagination";
 
 export default function SoupsPage() {
   const router = useRouter();
-  const [soups, setSoups] = useState<SoupResponse[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-  const [searchTerm, setSearchTerm] = useState("");
-  const [filterType, setFilterType] = useState("");
-  const [showFilters, setShowFilters] = useState(false);
-  const [isRefreshing, setIsRefreshing] = useState(false);
-  const [sortField, setSortField] = useState<"name" | "type">("name");
-  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
-  const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
-  const [total, setTotal] = useState(0);
+  const [soups, setSoups] = useState<SoupResponse[]>([]); // 汤品列表
+  const [loading, setLoading] = useState(true); // 加载状态
+  const [error, setError] = useState(""); // 错误信息
+  const [searchTerm, setSearchTerm] = useState(""); // 搜索关键词
+  const [filterType, setFilterType] = useState(""); // 筛选类型
+  const [showFilters, setShowFilters] = useState(false); // 是否显示筛选
+  const [isRefreshing, setIsRefreshing] = useState(false); // 是否正在刷新
+  const [sortField, setSortField] = useState<"name" | "type">("name"); // 排序字段
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc"); // 排序方向
+  const [page, setPage] = useState(1); // 当前页码
+  const [pageSize, setPageSize] = useState(10); // 每页条数
+
+  // 添加搜索相关状态
+  const [isSearching, setIsSearching] = useState(false);
 
   // 获取汤品列表
   const fetchSoups = async () => {
@@ -79,6 +80,18 @@ export default function SoupsPage() {
     } catch (err: any) {
       alert("删除失败: " + err.message);
     }
+  };
+
+  // 搜索事件
+  const handleSearch = () => {
+    if (!searchTerm.trim()) return;
+    setIsSearching(true);
+  };
+
+  // 清除搜索
+  const handleClearSearch = () => {
+    setIsSearching(false);
+    setSearchTerm("");
   };
 
   // 搜索和筛选
@@ -220,6 +233,7 @@ export default function SoupsPage() {
         {/* 搜索和筛选 */}
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 mb-8 border border-gray-100 dark:border-gray-700">
           <div className="flex flex-col lg:flex-row gap-4">
+            {/* 搜索框 */}
             <div className="flex-1">
               <div className="relative">
                 <FiSearch className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 text-lg" />
@@ -228,22 +242,40 @@ export default function SoupsPage() {
                   placeholder="搜索汤品名称或类型..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && handleSearch()}
                   className="w-full pl-12 pr-4 py-4 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-4 focus:ring-orange-500/20 focus:border-orange-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-lg transition-all duration-200"
                 />
+                <div className="absolute right-4 top-1/2 transform -translate-y-1/2 flex space-x-2">
+                  <button
+                    onClick={handleSearch}
+                    className="px-4 py-2 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white rounded-lg font-medium shadow-md hover:shadow-lg transition-all duration-200 text-sm cursor-pointer"
+                  >
+                    搜索
+                  </button>
+                  <button
+                    onClick={handleClearSearch}
+                    disabled={!isSearching && !searchTerm}
+                    className="px-4 py-2 bg-gradient-to-r from-gray-300 to-gray-400 hover:from-gray-400 hover:to-gray-500 text-gray-700 rounded-lg font-medium shadow-md hover:shadow-lg transition-all duration-200 text-sm disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                  >
+                    清除
+                  </button>
+                </div>
               </div>
             </div>
+
+            {/* 筛选按钮 */}
             <button
               onClick={() => setShowFilters(!showFilters)}
-              className={`px-6 py-4 rounded-xl flex items-center transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 cursor-pointer ${
-                showFilters
+              className={`px-6 py-4 rounded-xl flex items-center transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 cursor-pointer ${showFilters
                   ? "bg-gradient-to-r from-orange-500 to-orange-600 text-white"
                   : "bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-600 text-gray-700 dark:text-gray-300"
-              }`}
+                }`}
             >
               <FiFilter className="mr-2" />
               筛选
             </button>
           </div>
+          {/* 筛选选项 */}
           {showFilters && (
             <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700 animate-fadeIn">
               <div className="flex flex-wrap gap-4">
@@ -308,6 +340,14 @@ export default function SoupsPage() {
                 >
                   <FiPlus className="inline mr-2" />
                   添加第一个汤品
+                </button>
+              )}
+              {(searchTerm || filterType) && (
+                <button
+                  onClick={handleClearSearch}
+                  className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white px-8 py-4 rounded-xl font-medium transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 cursor-pointer"
+                >
+                  清除搜索
                 </button>
               )}
             </div>

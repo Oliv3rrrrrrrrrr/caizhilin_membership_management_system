@@ -2,12 +2,12 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { 
-  FiArrowLeft, 
-  FiUser, 
-  FiPhone, 
-  FiCreditCard, 
-  FiPackage, 
+import {
+  FiArrowLeft,
+  FiUser,
+  FiPhone,
+  FiCreditCard,
+  FiPackage,
   FiCalendar,
   FiEdit2,
   FiCoffee,
@@ -19,13 +19,22 @@ import {
 } from 'react-icons/fi';
 import { getMembershipById } from '@/services/membershipService';
 import { MembershipResponse } from '@/types/membership';
-import { formatSystemDate } from '@/lib/timeUtils';
+
+// 格式化日期显示
+function formatSystemDate(timestamp: string | Date): string {
+  const date = typeof timestamp === 'string' ? new Date(timestamp) : timestamp;
+  return date.toLocaleDateString('zh-CN', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
+  });
+}
 
 export default function MembershipDetailPage() {
   const router = useRouter();
   const params = useParams();
   const membershipId = parseInt(params.id as string);
-  
+
   const [membership, setMembership] = useState<MembershipResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -41,7 +50,7 @@ export default function MembershipDetailPage() {
           router.push('/login');
           return;
         }
-        
+
         const data = await getMembershipById(membershipId, token);
         setMembership(data);
       } catch (err: any) {
@@ -167,11 +176,10 @@ export default function MembershipDetailPage() {
         {/* 会员状态卡片 */}
         <div className="mb-8">
           <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden border border-gray-100 dark:border-gray-700">
-            <div className={`px-8 py-6 ${
-              isActive 
-                ? 'bg-gradient-to-r from-green-500 to-green-600' 
-                : 'bg-gradient-to-r from-orange-500 to-orange-600'
-            }`}>
+            <div className={`px-8 py-6 ${isActive
+              ? 'bg-gradient-to-r from-green-500 to-green-600'
+              : 'bg-gradient-to-r from-orange-500 to-orange-600'
+              }`}>
               <div className="flex items-center justify-between">
                 <div className="flex items-center">
                   <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mr-6">
@@ -193,16 +201,15 @@ export default function MembershipDetailPage() {
             <div className="px-8 py-6 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-700 dark:to-gray-600">
               <div className="flex items-center justify-between">
                 <div className="flex items-center">
-                  <div className={`w-4 h-4 rounded-full mr-3 ${
-                    isActive ? 'bg-green-500' : 'bg-red-500'
-                  }`}></div>
+                  <div className={`w-4 h-4 rounded-full mr-3 ${isActive ? 'bg-green-500' : 'bg-red-500'
+                    }`}></div>
                   <div>
                     <p className="text-lg font-semibold text-gray-900 dark:text-white">
                       {isActive ? '会员状态正常' : '需要续费'}
                     </p>
                     <p className="text-sm text-gray-600 dark:text-gray-400">
-                      {isActive 
-                        ? '可以继续使用汤品服务' 
+                      {isActive
+                        ? '可以继续使用汤品服务'
                         : '会员汤品已用完，建议续费'
                       }
                     </p>
@@ -247,7 +254,7 @@ export default function MembershipDetailPage() {
               </div>
               <h3 className="text-xl font-bold text-gray-900 dark:text-white">基本信息</h3>
             </div>
-            
+
             <div className="space-y-4">
               <div className="flex items-center p-4 bg-gray-50 dark:bg-gray-700 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors">
                 <FiUser className="text-blue-500 mr-4 text-lg" />
@@ -291,19 +298,17 @@ export default function MembershipDetailPage() {
               </div>
               <h3 className="text-xl font-bold text-gray-900 dark:text-white">业务信息</h3>
             </div>
-            
+
             <div className="space-y-4">
               <div className="flex items-center p-4 bg-gray-50 dark:bg-gray-700 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors">
-                <FiPackage className={`mr-4 text-lg ${
-                  isActive ? 'text-green-500' : 'text-red-500'
-                }`} />
+                <FiPackage className={`mr-4 text-lg ${isActive ? 'text-green-500' : 'text-red-500'
+                  }`} />
                 <div className="flex-1">
                   <div className="text-sm text-gray-500 dark:text-gray-400 mb-1">剩余汤品</div>
-                  <div className={`font-semibold text-lg ${
-                    isActive 
-                      ? 'text-green-600 dark:text-green-400' 
-                      : 'text-red-600 dark:text-red-400'
-                  }`}>
+                  <div className={`font-semibold text-lg ${isActive
+                    ? 'text-green-600 dark:text-green-400'
+                    : 'text-red-600 dark:text-red-400'
+                    }`}>
                     {membership.remainingSoups} 次
                   </div>
                 </div>

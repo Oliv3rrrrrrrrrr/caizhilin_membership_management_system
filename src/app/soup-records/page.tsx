@@ -2,12 +2,12 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { 
-  FiCoffee, 
-  FiSearch, 
-  FiFilter, 
-  FiEdit2, 
-  FiTrash2, 
+import {
+  FiCoffee,
+  FiSearch,
+  FiFilter,
+  FiEdit2,
+  FiTrash2,
   FiEye,
   FiRefreshCw,
   FiHome,
@@ -20,36 +20,58 @@ import {
 } from 'react-icons/fi';
 import { getSoupRecords, deleteSoupRecord, getSoupRecordStats, searchSoupRecords } from '@/services/soupRecordService';
 import { SoupRecordResponse } from '@/types/soupRecord';
-import { formatSystemTime, formatSystemDate } from '@/lib/timeUtils';
+
 import Pagination from '@/components/Pagination';
+
+// 格式化时间显示
+function formatSystemTime(timestamp: string): string {
+  const date = new Date(timestamp);
+  return date.toLocaleString('zh-CN', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+}
+
+// 格式化日期显示
+function formatSystemDate(timestamp: string): string {
+  const date = new Date(timestamp);
+  return date.toLocaleDateString('zh-CN', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
+  });
+}
 
 export default function SoupRecordsPage() {
   const router = useRouter();
-  const [records, setRecords] = useState<SoupRecordResponse[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [stats, setStats] = useState<{ total: number; today: number; week: number; uniqueMembers: number }>({ total: 0, today: 0, week: 0, uniqueMembers: 0 });
+  const [records, setRecords] = useState<SoupRecordResponse[]>([]); // 喝汤记录列表
+  const [loading, setLoading] = useState(true); // 加载状态
+  const [error, setError] = useState(''); // 错误信息
+  const [stats, setStats] = useState<{ total: number; today: number; week: number; uniqueMembers: number }>({ total: 0, today: 0, week: 0, uniqueMembers: 0 }); // 统计数据
   // 搜索相关
-  const [searchTerm, setSearchTerm] = useState('');
-  const [isSearching, setIsSearching] = useState(false);
-  const [searchResults, setSearchResults] = useState<SoupRecordResponse[]>([]);
-  const [searchLoading, setSearchLoading] = useState(false);
-  const [searchError, setSearchError] = useState('');
-  const [searchPage, setSearchPage] = useState(1);
-  const [searchPageSize, setSearchPageSize] = useState(10);
-  const [searchTotal, setSearchTotal] = useState(0);
+  const [searchTerm, setSearchTerm] = useState(''); // 搜索关键词
+  const [isSearching, setIsSearching] = useState(false); // 是否正在搜索
+  const [searchResults, setSearchResults] = useState<SoupRecordResponse[]>([]); // 搜索结果
+  const [searchLoading, setSearchLoading] = useState(false); // 搜索加载状态
+  const [searchError, setSearchError] = useState(''); // 搜索错误信息
+  const [searchPage, setSearchPage] = useState(1); // 搜索页码
+  const [searchPageSize, setSearchPageSize] = useState(10); // 搜索每页条数
+  const [searchTotal, setSearchTotal] = useState(0); // 搜索总条数
   // 主列表分页
-  const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
-  const [total, setTotal] = useState(0);
+  const [page, setPage] = useState(1); // 当前页码
+  const [pageSize, setPageSize] = useState(10); // 每页条数
+  const [total, setTotal] = useState(0); // 总条数
   // 其它筛选、排序等状态保持不变
-  const [filterSoupType, setFilterSoupType] = useState('');
-  const [filterDateRange, setFilterDateRange] = useState('');
-  const [showFilters, setShowFilters] = useState(false);
-  const [isRefreshing, setIsRefreshing] = useState(false);
-  const [sortField, setSortField] = useState<'drinkTime' | 'memberName' | 'soupName' | 'id'>('drinkTime');
-  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
-  const [successMessage, setSuccessMessage] = useState('');
+  const [filterSoupType, setFilterSoupType] = useState(''); // 汤品类型筛选
+  const [filterDateRange, setFilterDateRange] = useState(''); // 日期范围筛选
+  const [showFilters, setShowFilters] = useState(false); // 是否显示筛选
+  const [isRefreshing, setIsRefreshing] = useState(false); // 是否正在刷新
+  const [sortField, setSortField] = useState<'drinkTime' | 'memberName' | 'soupName' | 'id'>('drinkTime'); // 排序字段
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc'); // 排序方向
+  const [successMessage, setSuccessMessage] = useState(''); // 成功消息
 
   // 主列表分页获取
   const fetchRecords = async (pageNum = page, size = pageSize) => {
@@ -79,7 +101,7 @@ export default function SoupRecordsPage() {
       if (!token) return;
       const s = await getSoupRecordStats(token);
       setStats(s);
-    } catch {}
+    } catch { }
   };
 
   // 搜索分页获取
@@ -172,7 +194,7 @@ export default function SoupRecordsPage() {
     }
   };
 
-  // 筛选记录
+  // 筛选记录（只受筛选影响，不受搜索影响）
   const filteredRecords = records.filter(record => {
     const matchesSoupType = !filterSoupType || record.soup.type === filterSoupType;
     let matchesDateRange = true;
@@ -204,7 +226,7 @@ export default function SoupRecordsPage() {
     return matchesSoupType && matchesDateRange;
   });
 
-  // 排序记录
+  // 排序记录（主列表，只受筛选影响）
   const sortedRecords = [...filteredRecords].sort((a, b) => {
     let aValue: any;
     let bValue: any;
@@ -419,11 +441,10 @@ export default function SoupRecordsPage() {
             {/* 筛选按钮 */}
             <button
               onClick={() => setShowFilters(!showFilters)}
-              className={`px-6 py-4 rounded-xl flex items-center transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 cursor-pointer ${
-                showFilters 
-                  ? 'bg-gradient-to-r from-orange-500 to-orange-600 text-white' 
-                  : 'bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-600 text-gray-700 dark:text-gray-300'
-              }`}
+              className={`px-6 py-4 rounded-xl flex items-center transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 cursor-pointer ${showFilters
+                ? 'bg-gradient-to-r from-orange-500 to-orange-600 text-white'
+                : 'bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-600 text-gray-700 dark:text-gray-300'
+                }`}
             >
               <FiFilter className="mr-2" />
               筛选
@@ -630,7 +651,7 @@ export default function SoupRecordsPage() {
                 喝汤记录列表
               </h2>
               <span className="bg-orange-100 dark:bg-orange-900 text-orange-800 dark:text-orange-200 px-3 py-1 rounded-full text-sm font-medium">
-                {total} 条记录
+                {sortedRecords.length} 条记录
               </span>
             </div>
           </div>
@@ -649,15 +670,15 @@ export default function SoupRecordsPage() {
                 <FiCoffee className="text-gray-400 text-3xl" />
               </div>
               <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-                {searchTerm || filterSoupType || filterDateRange ? '没有找到匹配的记录' : '暂无喝汤记录'}
+                {filterSoupType || filterDateRange ? '没有找到匹配的记录' : '暂无喝汤记录'}
               </h3>
               <p className="text-gray-600 dark:text-gray-400 mb-8 max-w-md mx-auto">
-                {searchTerm || filterSoupType || filterDateRange 
-                  ? '请尝试调整搜索条件或筛选条件' 
+                {filterSoupType || filterDateRange
+                  ? '请尝试调整筛选条件'
                   : '开始添加第一条喝汤记录，记录会员的喝汤情况'
                 }
               </p>
-              {!searchTerm && !filterSoupType && !filterDateRange && (
+              {!filterSoupType && !filterDateRange && (
                 <button
                   onClick={() => router.push('/soup-records/new')}
                   className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white px-8 py-4 rounded-xl font-medium transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 cursor-pointer"
@@ -672,7 +693,7 @@ export default function SoupRecordsPage() {
               <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                 <thead className="bg-gray-50 dark:bg-gray-700">
                   <tr>
-                    <th 
+                    <th
                       className="px-8 py-4 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
                       onClick={() => handleSort('memberName')}
                     >
@@ -685,7 +706,7 @@ export default function SoupRecordsPage() {
                         )}
                       </div>
                     </th>
-                    <th 
+                    <th
                       className="px-8 py-4 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
                       onClick={() => handleSort('soupName')}
                     >
@@ -698,7 +719,7 @@ export default function SoupRecordsPage() {
                         )}
                       </div>
                     </th>
-                    <th 
+                    <th
                       className="px-8 py-4 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
                       onClick={() => handleSort('drinkTime')}
                     >
@@ -711,7 +732,7 @@ export default function SoupRecordsPage() {
                         )}
                       </div>
                     </th>
-                    <th 
+                    <th
                       className="px-8 py-4 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
                       onClick={() => handleSort('id')}
                     >
@@ -730,9 +751,9 @@ export default function SoupRecordsPage() {
                   </tr>
                 </thead>
                 <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                  {sortedRecords.map((record, index) => (
-                    <tr 
-                      key={record.id} 
+                  {sortedRecords.slice((page - 1) * pageSize, page * pageSize).map((record, index) => (
+                    <tr
+                      key={record.id}
                       className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-200 transform hover:scale-[1.01]"
                       style={{ animationDelay: `${index * 50}ms` }}
                     >
@@ -768,9 +789,9 @@ export default function SoupRecordsPage() {
                           <div className="text-lg font-semibold text-gray-900 dark:text-white">
                             {formatSystemTime(record.drinkTime)}
                           </div>
-                                                        <div className="text-sm text-gray-500 dark:text-gray-400">
-                                {formatSystemDate(record.drinkTime)}
-                              </div>
+                          <div className="text-sm text-gray-500 dark:text-gray-400">
+                            {formatSystemDate(record.drinkTime)}
+                          </div>
                         </div>
                       </td>
                       <td className="px-8 py-6 whitespace-nowrap">
@@ -815,7 +836,7 @@ export default function SoupRecordsPage() {
       <div className="flex justify-center items-center py-10">
         <div className="w-full max-w-4xl">
           <Pagination
-            total={total}
+            total={sortedRecords.length}
             page={page}
             pageSize={pageSize}
             onPageChange={p => setPage(p)}

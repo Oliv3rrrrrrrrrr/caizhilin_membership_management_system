@@ -68,20 +68,20 @@ export async function PUT(
 
   } catch (error) {
     console.error('更新会员信息失败:', error);
-    
+
     if (error instanceof Error) {
       if (error.message === '会员不存在') {
         return ApiResponseBuilder.notFound(error.message);
       }
       return ApiResponseBuilder.badRequest(error.message);
     }
-    
+
     return ApiResponseBuilder.serverError('更新会员信息失败');
   }
 }
 
 // 删除会员
-  export async function DELETE(
+export async function DELETE(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
@@ -104,14 +104,14 @@ export async function PUT(
 
   } catch (error) {
     console.error('删除会员失败:', error);
-    
+
     if (error instanceof Error) {
       if (error.message === '会员不存在') {
         return ApiResponseBuilder.notFound(error.message);
       }
       return ApiResponseBuilder.badRequest(error.message);
     }
-    
+
     return ApiResponseBuilder.serverError('删除会员失败');
   }
 }

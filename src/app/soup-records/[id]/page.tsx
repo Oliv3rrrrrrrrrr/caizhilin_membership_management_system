@@ -19,7 +19,28 @@ import {
 } from 'react-icons/fi';
 import { getSoupRecordById, deleteSoupRecord } from '@/services/soupRecordService';
 import { SoupRecordWithDetailsResponse } from '@/types/soupRecord';
-import { formatSystemTime, formatSystemDate } from '@/lib/timeUtils';
+
+// 格式化时间显示
+function formatSystemTime(timestamp: string | Date): string {
+  const date = typeof timestamp === 'string' ? new Date(timestamp) : timestamp;
+  return date.toLocaleString('zh-CN', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+}
+
+// 格式化日期显示
+function formatSystemDate(timestamp: string | Date): string {
+  const date = typeof timestamp === 'string' ? new Date(timestamp) : timestamp;
+  return date.toLocaleDateString('zh-CN', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
+  });
+}
 
 export default function SoupRecordDetailPage() {
   const router = useRouter();
@@ -244,7 +265,7 @@ export default function SoupRecordDetailPage() {
               </div>
               <h3 className="text-xl font-bold text-gray-900 dark:text-white">喝汤信息</h3>
             </div>
-            
+
             <div className="space-y-4">
               <div className="flex items-center p-4 bg-gray-50 dark:bg-gray-700 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors">
                 <FiPackage className="text-orange-500 mr-4 text-lg" />
@@ -288,7 +309,7 @@ export default function SoupRecordDetailPage() {
               </div>
               <h3 className="text-xl font-bold text-gray-900 dark:text-white">会员信息</h3>
             </div>
-            
+
             <div className="space-y-4">
               <div className="flex items-center p-4 bg-gray-50 dark:bg-gray-700 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors">
                 <FiUser className="text-blue-500 mr-4 text-lg" />
@@ -318,11 +339,10 @@ export default function SoupRecordDetailPage() {
                 <FiPackage className="text-orange-500 mr-4 text-lg" />
                 <div className="flex-1">
                   <div className="text-sm text-gray-500 dark:text-gray-400 mb-1">剩余次数</div>
-                  <div className={`font-semibold text-lg ${
-                    record.membership.remainingSoups > 0 
-                      ? 'text-green-600 dark:text-green-400' 
-                      : 'text-red-600 dark:text-red-400'
-                  }`}>
+                  <div className={`font-semibold text-lg ${record.membership.remainingSoups > 0
+                    ? 'text-green-600 dark:text-green-400'
+                    : 'text-red-600 dark:text-red-400'
+                    }`}>
                     {record.membership.remainingSoups} 次
                   </div>
                 </div>

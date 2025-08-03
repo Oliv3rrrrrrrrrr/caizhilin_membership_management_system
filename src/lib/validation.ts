@@ -6,7 +6,7 @@ export function validatePhone(phone: string): boolean {
 }
 
 // 密码强度验证
-export function validatePassword(password: string): {isValid: boolean; message: string} {
+export function validatePassword(password: string): { isValid: boolean; message: string } {
   // 1. 密码长度至少为6位
   if (password.length < 6) {
     return {
@@ -22,7 +22,7 @@ export function validatePassword(password: string): {isValid: boolean; message: 
       message: "密码长度不能超过20位",
     };
   }
- 
+
   // 3. 密码正确
   return {
     isValid: true,
@@ -31,7 +31,7 @@ export function validatePassword(password: string): {isValid: boolean; message: 
 }
 
 // 姓名验证
-export function validateName(name: string): {isValid: boolean; message: string} {
+export function validateName(name: string): { isValid: boolean; message: string } {
   // 1. 姓名长度至少2位
   if (name.length < 2) {
     return {

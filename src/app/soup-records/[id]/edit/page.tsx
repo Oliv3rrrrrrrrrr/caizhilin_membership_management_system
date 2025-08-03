@@ -18,13 +18,6 @@ import { getAllSoups } from '@/services/soupService';
 import { SoupRecordWithDetailsResponse } from '@/types/soupRecord';
 import { SoupResponse } from '@/types/soup';
 import { UpdateSoupRecordRequest } from '@/types/soupRecord';
-import dayjs from 'dayjs';
-import utc from 'dayjs/plugin/utc';
-import timezone from 'dayjs/plugin/timezone';
-
-// 扩展 dayjs 插件
-dayjs.extend(utc);
-dayjs.extend(timezone);
 
 export default function EditSoupRecordPage() {
   const router = useRouter();
@@ -42,7 +35,7 @@ export default function EditSoupRecordPage() {
     drinkTime: ''
   });
 
-  const [errors, setErrors] = useState<{[key: string]: string}>({});
+  const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
   // 获取喝汤记录详情和汤品列表
   useEffect(() => {
@@ -83,7 +76,7 @@ export default function EditSoupRecordPage() {
 
   // 表单验证
   const validateForm = (): boolean => {
-    const newErrors: {[key: string]: string} = {};
+    const newErrors: { [key: string]: string } = {};
 
     if (!formData.soupId) {
       newErrors.soupId = '请选择汤品';
@@ -94,9 +87,9 @@ export default function EditSoupRecordPage() {
     } else {
       // 将datetime-local格式转换为Date对象进行比较
       const selectedTime = new Date(formData.drinkTime + ':00'); // 添加秒数
-      const beijingNow = dayjs().tz('Asia/Shanghai').toDate();
-      
-      if (selectedTime > beijingNow) {
+      const now = new Date();
+
+      if (selectedTime > now) {
         newErrors.drinkTime = '喝汤时间不能晚于当前时间';
       }
     }
@@ -152,9 +145,9 @@ export default function EditSoupRecordPage() {
 
   // 处理取消
   const handleCancel = () => {
-    if (Object.keys(errors).length > 0 || 
-        formData.soupId !== record?.soup.id ||
-        formData.drinkTime !== '') {
+    if (Object.keys(errors).length > 0 ||
+      formData.soupId !== record?.soup.id ||
+      formData.drinkTime !== '') {
       if (confirm('您有未保存的修改，确定要取消吗？')) {
         router.back();
       }
@@ -299,11 +292,10 @@ export default function EditSoupRecordPage() {
                   <select
                     value={formData.soupId}
                     onChange={(e) => handleInputChange('soupId', parseInt(e.target.value))}
-                    className={`w-full px-4 py-4 border-2 rounded-xl focus:ring-4 focus:ring-orange-500/20 focus:border-orange-500 transition-all duration-200 text-lg appearance-none cursor-pointer ${
-                      errors.soupId
-                        ? 'border-red-300 dark:border-red-600 bg-red-50 dark:bg-red-900/20'
-                        : 'border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 hover:border-gray-300 dark:hover:border-gray-500'
-                    } text-gray-900 dark:text-white`}
+                    className={`w-full px-4 py-4 border-2 rounded-xl focus:ring-4 focus:ring-orange-500/20 focus:border-orange-500 transition-all duration-200 text-lg appearance-none cursor-pointer ${errors.soupId
+                      ? 'border-red-300 dark:border-red-600 bg-red-50 dark:bg-red-900/20'
+                      : 'border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 hover:border-gray-300 dark:hover:border-gray-500'
+                      } text-gray-900 dark:text-white`}
                   >
                     <option value={0}>请选择汤品</option>
                     {soups.map(soup => (
@@ -342,11 +334,10 @@ export default function EditSoupRecordPage() {
                     type="datetime-local"
                     value={formData.drinkTime}
                     onChange={(e) => handleInputChange('drinkTime', e.target.value)}
-                    className={`w-full px-4 py-4 border-2 rounded-xl focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200 text-lg ${
-                      errors.drinkTime
-                        ? 'border-red-300 dark:border-red-600 bg-red-50 dark:bg-red-900/20'
-                        : 'border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 hover:border-gray-300 dark:hover:border-gray-500'
-                    } text-gray-900 dark:text-white`}
+                    className={`w-full px-4 py-4 border-2 rounded-xl focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200 text-lg ${errors.drinkTime
+                      ? 'border-red-300 dark:border-red-600 bg-red-50 dark:bg-red-900/20'
+                      : 'border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 hover:border-gray-300 dark:hover:border-gray-500'
+                      } text-gray-900 dark:text-white`}
                   />
                   {errors.drinkTime && (
                     <div className="absolute right-3 top-1/2 transform -translate-y-1/2">

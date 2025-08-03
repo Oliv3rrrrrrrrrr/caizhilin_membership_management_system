@@ -22,17 +22,14 @@ import { createSoupRecord } from '@/services/soupRecordService';
 import { MembershipResponse } from '@/types/membership';
 import { SoupResponse } from '@/types/soup';
 import { CreateSoupRecordRequest } from '@/types/soupRecord';
-import dayjs from 'dayjs';
-import utc from 'dayjs/plugin/utc';
-import timezone from 'dayjs/plugin/timezone';
-
-dayjs.extend(utc);
-dayjs.extend(timezone);
-
 function getSystemDateTimeLocal(): string {
-  // 使用系统时区，可以通过环境变量配置
-  const systemTimezone = process.env.NEXT_PUBLIC_SYSTEM_TIMEZONE || 'Asia/Shanghai';
-  return dayjs().tz(systemTimezone).format('YYYY-MM-DDTHH:mm');
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  const hours = String(now.getHours()).padStart(2, '0');
+  const minutes = String(now.getMinutes()).padStart(2, '0');
+  return `${year}-${month}-${day}T${hours}:${minutes}`;
 }
 
 export default function NewSoupRecordPage() {
@@ -44,21 +41,21 @@ export default function NewSoupRecordPage() {
 
   const [memberships, setMemberships] = useState<MembershipResponse[]>([]);
   const [soups, setSoups] = useState<SoupResponse[]>([]);
-  
+
   // 会员搜索相关状态
   const [memberSearchTerm, setMemberSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState<MembershipResponse[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [showSearchResults, setShowSearchResults] = useState(false);
   const [selectedMember, setSelectedMember] = useState<MembershipResponse | null>(null);
-  
+
   const [formData, setFormData] = useState<CreateSoupRecordRequest>({
     membershipId: 0,
     soupId: 0,
     drinkTime: getSystemDateTimeLocal()
   });
 
-  const [errors, setErrors] = useState<{[key: string]: string}>({});
+  const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
   // 获取会员和汤品数据
   useEffect(() => {
@@ -120,7 +117,7 @@ export default function NewSoupRecordPage() {
     setMemberSearchTerm(value);
     setSelectedMember(null);
     setFormData(prev => ({ ...prev, membershipId: 0 }));
-    
+
     if (value.trim()) {
       searchMembers(value);
     } else {
@@ -135,7 +132,7 @@ export default function NewSoupRecordPage() {
     setMemberSearchTerm(member.name);
     setFormData(prev => ({ ...prev, membershipId: member.id }));
     setShowSearchResults(false);
-    
+
     // 清除对应字段的错误
     if (errors.membershipId) {
       const newErrors = { ...errors };
@@ -147,7 +144,7 @@ export default function NewSoupRecordPage() {
   // 处理输入变化
   const handleInputChange = (field: keyof CreateSoupRecordRequest, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
-    
+
     // 清除对应字段的错误
     if (errors[field]) {
       const newErrors = { ...errors };
@@ -158,7 +155,7 @@ export default function NewSoupRecordPage() {
 
   // 验证表单
   const validateForm = (): boolean => {
-    const newErrors: {[key: string]: string} = {};
+    const newErrors: { [key: string]: string } = {};
 
     if (!formData.membershipId || !selectedMember) {
       newErrors.membershipId = '请选择会员';
@@ -173,10 +170,11 @@ export default function NewSoupRecordPage() {
     if (!formData.drinkTime) {
       newErrors.drinkTime = '请选择喝汤时间';
     } else {
-      const selectedTime = dayjs(formData.drinkTime).tz('Asia/Shanghai');
-      const now = dayjs().tz('Asia/Shanghai');
-      
-      if (selectedTime.isAfter(now)) {
+      // 将datetime-local格式转换为Date对象进行比较
+      const selectedTime = new Date(formData.drinkTime + ':00'); // 添加秒数
+      const now = new Date();
+
+      if (selectedTime > now) {
         newErrors.drinkTime = '喝汤时间不能晚于当前时间';
       }
     }
@@ -188,7 +186,7 @@ export default function NewSoupRecordPage() {
   // 提交表单
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validateForm()) {
       return;
     }
@@ -203,7 +201,7 @@ export default function NewSoupRecordPage() {
 
       // 确保时间格式包含秒
       const drinkTimeWithSeconds = formData.drinkTime + ':00';
-      
+
       await createSoupRecord({
         ...formData,
         drinkTime: drinkTimeWithSeconds
@@ -222,12 +220,12 @@ export default function NewSoupRecordPage() {
 
   // 取消操作
   const handleCancel = () => {
-    if (Object.keys(errors).length > 0 || 
-        formData.membershipId !== 0 || 
-        formData.soupId !== 0 || 
-        formData.drinkTime !== getSystemDateTimeLocal() ||
-        selectedMember !== null ||
-        memberSearchTerm !== '') {
+    if (Object.keys(errors).length > 0 ||
+      formData.membershipId !== 0 ||
+      formData.soupId !== 0 ||
+      formData.drinkTime !== getSystemDateTimeLocal() ||
+      selectedMember !== null ||
+      memberSearchTerm !== '') {
       if (confirm('您有未保存的修改，确定要取消吗？')) {
         router.back();
       }
@@ -373,11 +371,10 @@ export default function NewSoupRecordPage() {
                               </p>
                             </div>
                             <div className="text-right">
-                              <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                                member.remainingSoups > 0 
-                                  ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
-                                  : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
-                              }`}>
+                              <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${member.remainingSoups > 0
+                                ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+                                : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
+                                }`}>
                                 剩余: {member.remainingSoups}次
                               </span>
                             </div>
@@ -434,9 +431,8 @@ export default function NewSoupRecordPage() {
               <select
                 value={formData.soupId}
                 onChange={(e) => handleInputChange('soupId', parseInt(e.target.value))}
-                className={`w-full px-4 py-4 border rounded-xl focus:ring-4 focus:ring-orange-500/20 focus:border-orange-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-lg transition-all duration-200 cursor-pointer ${
-                  errors.soupId ? 'border-red-500' : 'border-gray-200 dark:border-gray-600'
-                }`}
+                className={`w-full px-4 py-4 border rounded-xl focus:ring-4 focus:ring-orange-500/20 focus:border-orange-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-lg transition-all duration-200 cursor-pointer ${errors.soupId ? 'border-red-500' : 'border-gray-200 dark:border-gray-600'
+                  }`}
               >
                 <option value={0}>请选择汤品</option>
                 {soups.map(soup => (
@@ -463,9 +459,8 @@ export default function NewSoupRecordPage() {
                 type="datetime-local"
                 value={formData.drinkTime}
                 onChange={(e) => handleInputChange('drinkTime', e.target.value)}
-                className={`w-full px-4 py-4 border rounded-xl focus:ring-4 focus:ring-green-500/20 focus:border-green-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-lg transition-all duration-200 ${
-                  errors.drinkTime ? 'border-red-500' : 'border-gray-200 dark:border-gray-600'
-                }`}
+                className={`w-full px-4 py-4 border rounded-xl focus:ring-4 focus:ring-green-500/20 focus:border-green-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-lg transition-all duration-200 ${errors.drinkTime ? 'border-red-500' : 'border-gray-200 dark:border-gray-600'
+                  }`}
               />
               {errors.drinkTime && (
                 <p className="mt-2 text-red-600 dark:text-red-400 text-sm flex items-center">

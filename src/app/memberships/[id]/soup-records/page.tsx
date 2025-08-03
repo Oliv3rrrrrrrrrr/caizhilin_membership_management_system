@@ -2,10 +2,10 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { 
-  FiArrowLeft, 
-  FiUser, 
-  FiPackage, 
+import {
+  FiArrowLeft,
+  FiUser,
+  FiPackage,
   FiCoffee,
   FiPlus,
   FiSearch,
@@ -23,14 +23,36 @@ import { getMembershipById } from '@/services/membershipService';
 import { getSoupRecordsByMembershipId, deleteSoupRecord } from '@/services/soupRecordService';
 import { MembershipResponse } from '@/types/membership';
 import { SoupRecordResponse } from '@/types/soupRecord';
-import { formatSystemTime, formatSystemDate } from '@/lib/timeUtils';
+
 import Pagination from '@/components/Pagination';
+
+// 格式化时间显示
+function formatSystemTime(timestamp: string): string {
+  const date = new Date(timestamp);
+  return date.toLocaleString('zh-CN', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+}
+
+// 格式化日期显示
+function formatSystemDate(timestamp: string): string {
+  const date = new Date(timestamp);
+  return date.toLocaleDateString('zh-CN', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
+  });
+}
 
 export default function MembershipSoupRecordsPage() {
   const router = useRouter();
   const params = useParams();
   const membershipId = parseInt(params.id as string);
-  
+
   const [membership, setMembership] = useState<MembershipResponse | null>(null);
   const [soupRecords, setSoupRecords] = useState<SoupRecordResponse[]>([]);
   const [loading, setLoading] = useState(true);
@@ -56,13 +78,13 @@ export default function MembershipSoupRecordsPage() {
           router.push('/login');
           return;
         }
-        
+
         // 并行获取会员信息和喝汤记录
         const [membershipData, recordsResult] = await Promise.all([
           getMembershipById(membershipId, token),
           getSoupRecordsByMembershipId(membershipId, token, page, pageSize)
         ]);
-        
+
         setMembership(membershipData);
         setSoupRecords(recordsResult.data);
         setTotal(recordsResult.total);
@@ -100,7 +122,7 @@ export default function MembershipSoupRecordsPage() {
         router.push('/login');
         return;
       }
-      
+
       const recordsResult = await getSoupRecordsByMembershipId(membershipId, token, page, pageSize);
       setSoupRecords(recordsResult.data);
       setTotal(recordsResult.total);
@@ -125,7 +147,7 @@ export default function MembershipSoupRecordsPage() {
         router.push('/login');
         return;
       }
-      
+
       await deleteSoupRecord(recordId, token);
       await handleRefresh(); // 重新加载数据
     } catch (err: any) {
@@ -136,12 +158,12 @@ export default function MembershipSoupRecordsPage() {
   // 筛选记录
   const filteredRecords = soupRecords.filter(record => {
     const matchesSearch = record.soup.name.toLowerCase().includes(searchTerm.toLowerCase());
-    
+
     let matchesDateRange = true;
     if (filterDateRange) {
       const recordDate = new Date(record.drinkTime);
       const today = new Date();
-      
+
       switch (filterDateRange) {
         case 'today':
           matchesDateRange = recordDate.toDateString() === today.toDateString();
@@ -156,7 +178,7 @@ export default function MembershipSoupRecordsPage() {
           break;
       }
     }
-    
+
     return matchesSearch && matchesDateRange;
   });
 
@@ -207,7 +229,7 @@ export default function MembershipSoupRecordsPage() {
     const today = new Date();
     return recordDate.toDateString() === today.toDateString();
   }).length;
-  
+
   const weekRecords = soupRecords.filter(record => {
     const recordDate = new Date(record.drinkTime);
     const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
@@ -219,9 +241,9 @@ export default function MembershipSoupRecordsPage() {
     acc[record.soup.name] = (acc[record.soup.name] || 0) + 1;
     return acc;
   }, {} as Record<string, number>);
-  
+
   const mostFrequentSoup = Object.entries(soupFrequency)
-    .sort(([,a], [,b]) => b - a)[0];
+    .sort(([, a], [, b]) => b - a)[0];
 
   if (loading) {
     return (
@@ -320,11 +342,10 @@ export default function MembershipSoupRecordsPage() {
         {/* 会员信息卡片 */}
         <div className="mb-8">
           <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden border border-gray-100 dark:border-gray-700">
-            <div className={`px-8 py-6 ${
-              isActive 
-                ? 'bg-gradient-to-r from-green-500 to-green-600' 
-                : 'bg-gradient-to-r from-orange-500 to-orange-600'
-            }`}>
+            <div className={`px-8 py-6 ${isActive
+              ? 'bg-gradient-to-r from-green-500 to-green-600'
+              : 'bg-gradient-to-r from-orange-500 to-orange-600'
+              }`}>
               <div className="flex items-center justify-between">
                 <div className="flex items-center">
                   <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mr-6">
@@ -348,16 +369,15 @@ export default function MembershipSoupRecordsPage() {
             <div className="px-8 py-6 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-700 dark:to-gray-600">
               <div className="flex items-center justify-between">
                 <div className="flex items-center">
-                  <div className={`w-4 h-4 rounded-full mr-3 ${
-                    isActive ? 'bg-green-500' : 'bg-red-500'
-                  }`}></div>
+                  <div className={`w-4 h-4 rounded-full mr-3 ${isActive ? 'bg-green-500' : 'bg-red-500'
+                    }`}></div>
                   <div>
                     <p className="text-lg font-semibold text-gray-900 dark:text-white">
                       {isActive ? '会员状态正常' : '需要续费'}
                     </p>
                     <p className="text-sm text-gray-600 dark:text-gray-400">
-                      {isActive 
-                        ? '可以继续使用汤品服务' 
+                      {isActive
+                        ? '可以继续使用汤品服务'
                         : '会员汤品已用完，建议续费'
                       }
                     </p>
@@ -487,8 +507,8 @@ export default function MembershipSoupRecordsPage() {
                 {searchTerm || filterDateRange ? '没有找到匹配的记录' : '暂无喝汤记录'}
               </h3>
               <p className="text-gray-600 dark:text-gray-400 mb-8 max-w-md mx-auto">
-                {searchTerm || filterDateRange 
-                  ? '请尝试调整搜索条件或筛选条件' 
+                {searchTerm || filterDateRange
+                  ? '请尝试调整搜索条件或筛选条件'
                   : '开始添加第一条喝汤记录吧'
                 }
               </p>
@@ -507,7 +527,7 @@ export default function MembershipSoupRecordsPage() {
               <table className="w-full divide-y divide-gray-200 dark:divide-gray-700">
                 <thead className="bg-gray-50 dark:bg-gray-700">
                   <tr>
-                    <th 
+                    <th
                       className="px-8 py-4 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
                       onClick={() => handleSort('soupName')}
                     >
@@ -520,7 +540,7 @@ export default function MembershipSoupRecordsPage() {
                         )}
                       </div>
                     </th>
-                    <th 
+                    <th
                       className="px-8 py-4 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
                       onClick={() => handleSort('drinkTime')}
                     >
@@ -540,8 +560,8 @@ export default function MembershipSoupRecordsPage() {
                 </thead>
                 <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                   {sortedRecords.map((record, index) => (
-                    <tr 
-                      key={record.id} 
+                    <tr
+                      key={record.id}
                       className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-200 transform hover:scale-[1.01]"
                       style={{ animationDelay: `${index * 50}ms` }}
                     >

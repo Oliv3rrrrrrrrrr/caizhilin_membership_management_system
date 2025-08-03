@@ -2,11 +2,11 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { 
-  FiArrowLeft, 
-  FiUser, 
-  FiPhone, 
-  FiCreditCard, 
+import {
+  FiArrowLeft,
+  FiUser,
+  FiPhone,
+  FiCreditCard,
   FiPackage,
   FiPlus,
   FiCheckCircle,
@@ -20,7 +20,7 @@ export default function NewMembershipPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  
+
   const [formData, setFormData] = useState<CreateMembershipRequest>({
     name: '',
     phone: '',
@@ -28,11 +28,11 @@ export default function NewMembershipPage() {
     remainingSoups: 0
   });
 
-  const [errors, setErrors] = useState<{[key: string]: string}>({});
+  const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
   // 表单验证
   const validateForm = (): boolean => {
-    const newErrors: {[key: string]: string} = {};
+    const newErrors: { [key: string]: string } = {};
 
     if (!formData.name.trim()) {
       newErrors.name = '姓名不能为空';
@@ -174,11 +174,10 @@ export default function NewMembershipPage() {
                     type="text"
                     value={formData.name}
                     onChange={(e) => handleInputChange('name', e.target.value)}
-                    className={`w-full px-4 py-4 border-2 rounded-xl focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200 text-lg ${
-                      errors.name 
-                        ? 'border-red-300 dark:border-red-600 bg-red-50 dark:bg-red-900/20' 
+                    className={`w-full px-4 py-4 border-2 rounded-xl focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200 text-lg ${errors.name
+                        ? 'border-red-300 dark:border-red-600 bg-red-50 dark:bg-red-900/20'
                         : 'border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 hover:border-gray-300 dark:hover:border-gray-500'
-                    } text-gray-900 dark:text-white`}
+                      } text-gray-900 dark:text-white`}
                     placeholder="请输入会员姓名"
                   />
                   {errors.name && (
@@ -206,11 +205,10 @@ export default function NewMembershipPage() {
                     type="tel"
                     value={formData.phone}
                     onChange={(e) => handleInputChange('phone', e.target.value)}
-                    className={`w-full px-4 py-4 border-2 rounded-xl focus:ring-4 focus:ring-green-500/20 focus:border-green-500 transition-all duration-200 text-lg ${
-                      errors.phone 
-                        ? 'border-red-300 dark:border-red-600 bg-red-50 dark:bg-red-900/20' 
+                    className={`w-full px-4 py-4 border-2 rounded-xl focus:ring-4 focus:ring-green-500/20 focus:border-green-500 transition-all duration-200 text-lg ${errors.phone
+                        ? 'border-red-300 dark:border-red-600 bg-red-50 dark:bg-red-900/20'
                         : 'border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 hover:border-gray-300 dark:hover:border-gray-500'
-                    } text-gray-900 dark:text-white`}
+                      } text-gray-900 dark:text-white`}
                     placeholder="请输入手机号"
                   />
                   {errors.phone && (
@@ -237,11 +235,10 @@ export default function NewMembershipPage() {
                   <select
                     value={formData.cardType}
                     onChange={(e) => handleInputChange('cardType', e.target.value)}
-                    className={`w-full px-4 py-4 border-2 rounded-xl focus:ring-4 focus:ring-purple-500/20 focus:border-purple-500 transition-all duration-200 text-lg appearance-none cursor-pointer ${
-                      errors.cardType 
-                        ? 'border-red-300 dark:border-red-600 bg-red-50 dark:bg-red-900/20' 
+                    className={`w-full px-4 py-4 border-2 rounded-xl focus:ring-4 focus:ring-purple-500/20 focus:border-purple-500 transition-all duration-200 text-lg appearance-none cursor-pointer ${errors.cardType
+                        ? 'border-red-300 dark:border-red-600 bg-red-50 dark:bg-red-900/20'
                         : 'border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 hover:border-gray-300 dark:hover:border-gray-500'
-                    } text-gray-900 dark:text-white`}
+                      } text-gray-900 dark:text-white`}
                   >
                     <option value="">请选择卡类型</option>
                     <option value="350卡">350卡</option>
@@ -278,11 +275,10 @@ export default function NewMembershipPage() {
                     type="number"
                     min="0"
                     onChange={(e) => handleInputChange('remainingSoups', parseInt(e.target.value) || 0)}
-                    className={`w-full px-4 py-4 border-2 rounded-xl focus:ring-4 focus:ring-orange-500/20 focus:border-orange-500 transition-all duration-200 text-lg ${
-                      errors.remainingSoups 
-                        ? 'border-red-300 dark:border-red-600 bg-red-50 dark:bg-red-900/20' 
+                    className={`w-full px-4 py-4 border-2 rounded-xl focus:ring-4 focus:ring-orange-500/20 focus:border-orange-500 transition-all duration-200 text-lg ${errors.remainingSoups
+                        ? 'border-red-300 dark:border-red-600 bg-red-50 dark:bg-red-900/20'
                         : 'border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 hover:border-gray-300 dark:hover:border-gray-500'
-                    } text-gray-900 dark:text-white`}
+                      } text-gray-900 dark:text-white`}
                     placeholder="请输入剩余汤品数量"
                   />
                   {errors.remainingSoups && (
@@ -354,7 +350,7 @@ export default function NewMembershipPage() {
                 <li>• 会员姓名将用于系统识别和显示</li>
                 <li>• 手机号将作为会员的唯一联系方式</li>
                 <li>• 卡号将自动生成，格式为 VIP + 序号</li>
-                <li>• 剩余汤品数量由卡类型决定，350卡为10次，500卡为20次，980卡为40次</li>
+                <li>• 剩余汤品数量由卡类型决定，350卡为10次，500卡为20次，1000卡为40次</li>
               </ul>
             </div>
           </div>

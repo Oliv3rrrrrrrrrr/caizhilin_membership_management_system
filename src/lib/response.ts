@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { ApiResponse } from '@/types/membership';
-import { toSystemISOString } from '@/lib/timeUtils';
+
 
 // 定义响应接口
 export class ApiResponseBuilder {
@@ -11,7 +11,7 @@ export class ApiResponseBuilder {
       success: true,
       message,
       data,
-      timestamp: toSystemISOString(new Date())
+      timestamp: new Date().toISOString()
     };
     // 2. 返回响应对象
     return NextResponse.json(response);
@@ -24,7 +24,7 @@ export class ApiResponseBuilder {
       success: false,
       message,
       error: errorCode,
-      timestamp: toSystemISOString(new Date())
+      timestamp: new Date().toISOString()
     };
     // 2. 返回响应对象
     return NextResponse.json(response, { status });

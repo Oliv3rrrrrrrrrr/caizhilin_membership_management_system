@@ -1,7 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import { CreateMembershipRequest, UpdateMembershipRequest, MembershipResponse } from '@/types/membership';
 import { validatePhone, validateName } from '@/lib/validation';
-import { getSystemNow } from '@/lib/timeUtils';
 
 // 创建Prisma客户端
 const prisma = new PrismaClient();
@@ -94,13 +93,14 @@ export class MembershipService {
     this.validateCreateData(data);
     await this.checkPhoneExists(data.phone);
     const cardNumber = await this.generateCardNumber();
+
     const membership = await prisma.memberships.create({
       data: {
         name: data.name,
         phone: data.phone,
         cardNumber,
         cardType: data.cardType,
-        issueDate: getSystemNow(),
+        issueDate: new Date(),
         remainingSoups: data.remainingSoups,
       },
       select: {

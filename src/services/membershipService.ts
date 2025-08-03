@@ -34,7 +34,7 @@ export async function getMembershipById(id: number, token: string): Promise<Memb
 export async function createMembership(membershipData: CreateMembershipRequest, token: string): Promise<MembershipResponse> {
   const res = await fetch('/api/memberships', {
     method: 'POST',
-    headers: { 
+    headers: {
       'Content-Type': 'application/json',
       Authorization: `Bearer ${token}`
     },
@@ -49,7 +49,7 @@ export async function createMembership(membershipData: CreateMembershipRequest, 
 export async function updateMembership(id: number, membershipData: UpdateMembershipRequest, token: string): Promise<MembershipResponse> {
   const res = await fetch(`/api/memberships/${id}`, {
     method: 'PUT',
-    headers: { 
+    headers: {
       'Content-Type': 'application/json',
       Authorization: `Bearer ${token}`
     },
@@ -83,7 +83,7 @@ export async function searchMemberships(query: string, token: string, page: numb
     page: data.data.page || page,
     pageSize: data.data.pageSize || pageSize,
   };
-} 
+}
 
 // 获取会员统计信息
 export async function getMembershipStats(token: string): Promise<{ total: number; active: number; inactive: number; cardTypeCount: number }> {

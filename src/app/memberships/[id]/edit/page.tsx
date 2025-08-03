@@ -2,11 +2,11 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { 
-  FiArrowLeft, 
-  FiUser, 
-  FiPhone, 
-  FiCreditCard, 
+import {
+  FiArrowLeft,
+  FiUser,
+  FiPhone,
+  FiCreditCard,
   FiPackage,
   FiSave,
   FiCheckCircle,
@@ -20,12 +20,12 @@ export default function EditMembershipPage() {
   const router = useRouter();
   const params = useParams();
   const membershipId = parseInt(params.id as string);
-  
+
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [membership, setMembership] = useState<MembershipResponse | null>(null);
-  
+
   const [formData, setFormData] = useState<UpdateMembershipRequest>({
     name: '',
     phone: '',
@@ -33,7 +33,7 @@ export default function EditMembershipPage() {
     remainingSoups: 0
   });
 
-  const [errors, setErrors] = useState<{[key: string]: string}>({});
+  const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
   // 获取会员信息
   useEffect(() => {
@@ -45,10 +45,10 @@ export default function EditMembershipPage() {
           router.push('/login');
           return;
         }
-        
+
         const data = await getMembershipById(membershipId, token);
         setMembership(data);
-        
+
         // 填充表单数据
         setFormData({
           name: data.name,
@@ -70,7 +70,7 @@ export default function EditMembershipPage() {
 
   // 表单验证
   const validateForm = (): boolean => {
-    const newErrors: {[key: string]: string} = {};
+    const newErrors: { [key: string]: string } = {};
 
     if (!formData.name?.trim()) {
       newErrors.name = '姓名不能为空';
@@ -141,11 +141,11 @@ export default function EditMembershipPage() {
 
   // 处理取消编辑
   const handleCancel = () => {
-    if (Object.keys(errors).length > 0 || 
-        formData.name !== membership?.name ||
-        formData.phone !== membership?.phone ||
-        formData.cardType !== membership?.cardType ||
-        formData.remainingSoups !== membership?.remainingSoups) {
+    if (Object.keys(errors).length > 0 ||
+      formData.name !== membership?.name ||
+      formData.phone !== membership?.phone ||
+      formData.cardType !== membership?.cardType ||
+      formData.remainingSoups !== membership?.remainingSoups) {
       if (confirm('您有未保存的修改，确定要取消吗？')) {
         router.back();
       }
@@ -262,15 +262,14 @@ export default function EditMembershipPage() {
                   会员姓名 *
                 </label>
                 <div className="relative">
-                                     <input
-                     type="text"
-                     value={formData.name || ''}
-                     onChange={(e) => handleInputChange('name', e.target.value)}
-                    className={`w-full px-4 py-4 border-2 rounded-xl focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200 text-lg ${
-                      errors.name 
-                        ? 'border-red-300 dark:border-red-600 bg-red-50 dark:bg-red-900/20' 
+                  <input
+                    type="text"
+                    value={formData.name || ''}
+                    onChange={(e) => handleInputChange('name', e.target.value)}
+                    className={`w-full px-4 py-4 border-2 rounded-xl focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200 text-lg ${errors.name
+                        ? 'border-red-300 dark:border-red-600 bg-red-50 dark:bg-red-900/20'
                         : 'border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 hover:border-gray-300 dark:hover:border-gray-500'
-                    } text-gray-900 dark:text-white`}
+                      } text-gray-900 dark:text-white`}
                     placeholder="请输入会员姓名"
                   />
                   {errors.name && (
@@ -294,15 +293,14 @@ export default function EditMembershipPage() {
                   手机号 *
                 </label>
                 <div className="relative">
-                                     <input
-                     type="tel"
-                     value={formData.phone || ''}
-                     onChange={(e) => handleInputChange('phone', e.target.value)}
-                    className={`w-full px-4 py-4 border-2 rounded-xl focus:ring-4 focus:ring-green-500/20 focus:border-green-500 transition-all duration-200 text-lg ${
-                      errors.phone 
-                        ? 'border-red-300 dark:border-red-600 bg-red-50 dark:bg-red-900/20' 
+                  <input
+                    type="tel"
+                    value={formData.phone || ''}
+                    onChange={(e) => handleInputChange('phone', e.target.value)}
+                    className={`w-full px-4 py-4 border-2 rounded-xl focus:ring-4 focus:ring-green-500/20 focus:border-green-500 transition-all duration-200 text-lg ${errors.phone
+                        ? 'border-red-300 dark:border-red-600 bg-red-50 dark:bg-red-900/20'
                         : 'border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 hover:border-gray-300 dark:hover:border-gray-500'
-                    } text-gray-900 dark:text-white`}
+                      } text-gray-900 dark:text-white`}
                     placeholder="请输入手机号"
                   />
                   {errors.phone && (
@@ -326,14 +324,13 @@ export default function EditMembershipPage() {
                   卡类型 *
                 </label>
                 <div className="relative">
-                                     <select
-                     value={formData.cardType || ''}
-                     onChange={(e) => handleInputChange('cardType', e.target.value)}
-                    className={`w-full px-4 py-4 border-2 rounded-xl focus:ring-4 focus:ring-purple-500/20 focus:border-purple-500 transition-all duration-200 text-lg appearance-none cursor-pointer ${
-                      errors.cardType 
-                        ? 'border-red-300 dark:border-red-600 bg-red-50 dark:bg-red-900/20' 
+                  <select
+                    value={formData.cardType || ''}
+                    onChange={(e) => handleInputChange('cardType', e.target.value)}
+                    className={`w-full px-4 py-4 border-2 rounded-xl focus:ring-4 focus:ring-purple-500/20 focus:border-purple-500 transition-all duration-200 text-lg appearance-none cursor-pointer ${errors.cardType
+                        ? 'border-red-300 dark:border-red-600 bg-red-50 dark:bg-red-900/20'
                         : 'border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 hover:border-gray-300 dark:hover:border-gray-500'
-                    } text-gray-900 dark:text-white`}
+                      } text-gray-900 dark:text-white`}
                   >
                     <option value="">请选择卡类型</option>
                     <option value="350卡">350卡</option>
@@ -366,17 +363,16 @@ export default function EditMembershipPage() {
                   剩余汤品数量 *
                 </label>
                 <div className="relative">
-                                     <input
-                     type="number"
-                     min="0"
-                     max="1000"
-                     value={formData.remainingSoups || 0}
-                     onChange={(e) => handleInputChange('remainingSoups', parseInt(e.target.value) || 0)}
-                    className={`w-full px-4 py-4 border-2 rounded-xl focus:ring-4 focus:ring-orange-500/20 focus:border-orange-500 transition-all duration-200 text-lg ${
-                      errors.remainingSoups 
-                        ? 'border-red-300 dark:border-red-600 bg-red-50 dark:bg-red-900/20' 
+                  <input
+                    type="number"
+                    min="0"
+                    max="1000"
+                    value={formData.remainingSoups || 0}
+                    onChange={(e) => handleInputChange('remainingSoups', parseInt(e.target.value) || 0)}
+                    className={`w-full px-4 py-4 border-2 rounded-xl focus:ring-4 focus:ring-orange-500/20 focus:border-orange-500 transition-all duration-200 text-lg ${errors.remainingSoups
+                        ? 'border-red-300 dark:border-red-600 bg-red-50 dark:bg-red-900/20'
                         : 'border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 hover:border-gray-300 dark:hover:border-gray-500'
-                    } text-gray-900 dark:text-white`}
+                      } text-gray-900 dark:text-white`}
                     placeholder="请输入剩余汤品数量"
                   />
                   {errors.remainingSoups && (

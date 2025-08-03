@@ -1,5 +1,5 @@
 import { PrismaClient } from '@prisma/client';
-import { getSystemTodayStart } from '@/lib/timeUtils';
+
 
 // 创建Prisma客户端
 const prisma = new PrismaClient();
@@ -16,7 +16,8 @@ export class StatsService {
     ]);
 
     // 今日新增会员
-    const todayStart = getSystemTodayStart();
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
     const todayNewMembers = await prisma.memberships.count({
       where: { issueDate: { gte: todayStart } }
     });

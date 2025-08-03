@@ -2,13 +2,13 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { 
-  FiUsers, 
-  FiPlus, 
-  FiSearch, 
-  FiFilter, 
-  FiEdit2, 
-  FiTrash2, 
+import {
+  FiUsers,
+  FiPlus,
+  FiSearch,
+  FiFilter,
+  FiEdit2,
+  FiTrash2,
   FiEye,
   FiRefreshCw,
   FiHome,
@@ -20,33 +20,43 @@ import {
 } from 'react-icons/fi';
 import { getMemberships, deleteMembership, searchMemberships, getMembershipStats } from '@/services/membershipService';
 import { MembershipResponse } from '@/types/membership';
-import { formatSystemDate } from '@/lib/timeUtils';
+
 import Pagination from '@/components/Pagination';
 
+// 格式化日期显示
+function formatSystemDate(timestamp: string | Date): string {
+  const date = typeof timestamp === 'string' ? new Date(timestamp) : timestamp;
+  return date.toLocaleDateString('zh-CN', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
+  });
+}
+
 export default function MembershipsPage() {
-  const router = useRouter();
-  const [memberships, setMemberships] = useState<MembershipResponse[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [searchTerm, setSearchTerm] = useState('');
-  const [isSearching, setIsSearching] = useState(false);
-  const [searchResults, setSearchResults] = useState<MembershipResponse[]>([]);
-  const [searchLoading, setSearchLoading] = useState(false);
-  const [searchError, setSearchError] = useState('');
-  const [filterCardType, setFilterCardType] = useState('');
-  const [showFilters, setShowFilters] = useState(false);
-  const [isRefreshing, setIsRefreshing] = useState(false);
-  const [sortField, setSortField] = useState<'name' | 'phone' | 'cardNumber' | 'remainingSoups' | 'issueDate'>('issueDate');
-  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
-  const [successMessage, setSuccessMessage] = useState('');
+  const router = useRouter(); // 路由
+  const [memberships, setMemberships] = useState<MembershipResponse[]>([]); // 会员列表
+  const [loading, setLoading] = useState(true); // 加载状态
+  const [error, setError] = useState(''); // 错误信息
+  const [searchTerm, setSearchTerm] = useState(''); // 搜索关键词
+  const [isSearching, setIsSearching] = useState(false); // 是否正在搜索
+  const [searchResults, setSearchResults] = useState<MembershipResponse[]>([]); // 搜索结果
+  const [searchLoading, setSearchLoading] = useState(false); // 搜索加载状态
+  const [searchError, setSearchError] = useState(''); // 搜索错误信息
+  const [filterCardType, setFilterCardType] = useState(''); // 卡类型筛选
+  const [showFilters, setShowFilters] = useState(false); // 是否显示筛选
+  const [isRefreshing, setIsRefreshing] = useState(false); // 是否正在刷新
+  const [sortField, setSortField] = useState<'name' | 'phone' | 'cardNumber' | 'remainingSoups' | 'issueDate'>('issueDate'); // 排序字段
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc'); // 排序方向
+  const [successMessage, setSuccessMessage] = useState(''); // 成功消息
   // 分页相关
-  const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
-  const [total, setTotal] = useState(0);
-  const [searchPage, setSearchPage] = useState(1);
-  const [searchPageSize, setSearchPageSize] = useState(10);
-  const [searchTotal, setSearchTotal] = useState(0);
-  const [stats, setStats] = useState<{ total: number; active: number; inactive: number; cardTypeCount: number }>({ total: 0, active: 0, inactive: 0, cardTypeCount: 0 });
+  const [page, setPage] = useState(1); // 当前页
+  const [pageSize, setPageSize] = useState(10); // 每页数量
+  const [total, setTotal] = useState(0); // 总数量
+  const [searchPage, setSearchPage] = useState(1); // 搜索页
+  const [searchPageSize, setSearchPageSize] = useState(10); // 搜索每页数量
+  const [searchTotal, setSearchTotal] = useState(0); // 搜索总数量
+  const [stats, setStats] = useState<{ total: number; active: number; inactive: number; cardTypeCount: number }>({ total: 0, active: 0, inactive: 0, cardTypeCount: 0 }); // 统计数据
 
   // 主列表分页获取
   const fetchMemberships = async (pageNum = page, size = pageSize) => {
@@ -103,6 +113,7 @@ export default function MembershipsPage() {
     }
   }, []);
 
+  // 获取统计数据
   useEffect(() => {
     const fetchAll = async () => {
       fetchMemberships();
@@ -111,7 +122,7 @@ export default function MembershipsPage() {
         if (!token) return;
         const s = await getMembershipStats(token);
         setStats(s);
-      } catch {}
+      } catch { }
     };
     fetchAll();
   }, [page, pageSize]);
@@ -221,12 +232,6 @@ export default function MembershipsPage() {
 
   // 获取所有卡类型
   const cardTypes = [...new Set(memberships.map(m => m.cardType))];
-
-  // 统计数据
-  const totalMembers = memberships.length;
-  const activeMembers = memberships.filter(m => m.remainingSoups > 0).length;
-  const inactiveMembers = memberships.filter(m => m.remainingSoups === 0).length;
-  const cardTypeCount = cardTypes.length;
 
   if (loading) {
     return (
@@ -386,11 +391,10 @@ export default function MembershipsPage() {
             {/* 筛选按钮 */}
             <button
               onClick={() => setShowFilters(!showFilters)}
-              className={`px-6 py-4 rounded-xl flex items-center transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 cursor-pointer ${
-                showFilters 
-                  ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white' 
-                  : 'bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-600 text-gray-700 dark:text-gray-300'
-              }`}
+              className={`px-6 py-4 rounded-xl flex items-center transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 cursor-pointer ${showFilters
+                ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white'
+                : 'bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-600 text-gray-700 dark:text-gray-300'
+                }`}
             >
               <FiFilter className="mr-2" />
               筛选
@@ -511,11 +515,10 @@ export default function MembershipsPage() {
                             </span>
                           </td>
                           <td className="px-8 py-6 whitespace-nowrap">
-                            <span className={`inline-flex items-center px-4 py-2 rounded-full text-sm font-semibold ${
-                              membership.remainingSoups > 0 
-                                ? 'bg-gradient-to-r from-green-100 to-green-200 text-green-800 dark:from-green-900 dark:to-green-800 dark:text-green-200'
-                                : 'bg-gradient-to-r from-red-100 to-red-200 text-red-800 dark:from-red-900 dark:to-red-800 dark:text-red-200'
-                            }`}>
+                            <span className={`inline-flex items-center px-4 py-2 rounded-full text-sm font-semibold ${membership.remainingSoups > 0
+                              ? 'bg-gradient-to-r from-green-100 to-green-200 text-green-800 dark:from-green-900 dark:to-green-800 dark:text-green-200'
+                              : 'bg-gradient-to-r from-red-100 to-red-200 text-red-800 dark:from-red-900 dark:to-red-800 dark:text-red-200'
+                              }`}>
                               <FiPackage className="mr-2" />
                               {membership.remainingSoups} 次
                             </span>
@@ -611,7 +614,7 @@ export default function MembershipsPage() {
               <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                 <thead className="bg-gray-50 dark:bg-gray-700">
                   <tr>
-                    <th 
+                    <th
                       className="px-8 py-4 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
                       onClick={() => handleSort('name')}
                     >
@@ -624,7 +627,7 @@ export default function MembershipsPage() {
                         )}
                       </div>
                     </th>
-                    <th 
+                    <th
                       className="px-8 py-4 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
                       onClick={() => handleSort('cardNumber')}
                     >
@@ -637,7 +640,7 @@ export default function MembershipsPage() {
                         )}
                       </div>
                     </th>
-                    <th 
+                    <th
                       className="px-8 py-4 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
                       onClick={() => handleSort('phone')}
                     >
@@ -650,7 +653,7 @@ export default function MembershipsPage() {
                         )}
                       </div>
                     </th>
-                    <th 
+                    <th
                       className="px-8 py-4 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
                       onClick={() => handleSort('remainingSoups')}
                     >
@@ -663,7 +666,7 @@ export default function MembershipsPage() {
                         )}
                       </div>
                     </th>
-                    <th 
+                    <th
                       className="px-8 py-4 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
                       onClick={() => handleSort('issueDate')}
                     >
@@ -683,8 +686,8 @@ export default function MembershipsPage() {
                 </thead>
                 <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                   {sortedMemberships.map((membership, index) => (
-                    <tr 
-                      key={membership.id} 
+                    <tr
+                      key={membership.id}
                       className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-200 transform hover:scale-[1.01]"
                       style={{ animationDelay: `${index * 50}ms` }}
                     >
@@ -716,11 +719,10 @@ export default function MembershipsPage() {
                         </span>
                       </td>
                       <td className="px-8 py-6 whitespace-nowrap">
-                        <span className={`inline-flex items-center px-4 py-2 rounded-full text-sm font-semibold ${
-                          membership.remainingSoups > 0 
-                            ? 'bg-gradient-to-r from-green-100 to-green-200 text-green-800 dark:from-green-900 dark:to-green-800 dark:text-green-200'
-                            : 'bg-gradient-to-r from-red-100 to-red-200 text-red-800 dark:from-red-900 dark:to-red-800 dark:text-red-200'
-                        }`}>
+                        <span className={`inline-flex items-center px-4 py-2 rounded-full text-sm font-semibold ${membership.remainingSoups > 0
+                          ? 'bg-gradient-to-r from-green-100 to-green-200 text-green-800 dark:from-green-900 dark:to-green-800 dark:text-green-200'
+                          : 'bg-gradient-to-r from-red-100 to-red-200 text-red-800 dark:from-red-900 dark:to-red-800 dark:text-red-200'
+                          }`}>
                           <FiPackage className="mr-2" />
                           {membership.remainingSoups} 次
                         </span>

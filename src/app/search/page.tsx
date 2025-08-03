@@ -167,11 +167,10 @@ export default function SearchPage() {
                           </span>
                         </td>
                         <td className="px-8 py-6 whitespace-nowrap">
-                          <span className={`inline-flex items-center px-4 py-2 rounded-full text-sm font-semibold ${
-                            member.remainingSoups > 0
+                          <span className={`inline-flex items-center px-4 py-2 rounded-full text-sm font-semibold ${member.remainingSoups > 0
                               ? 'bg-gradient-to-r from-green-100 to-green-200 text-green-800 dark:from-green-900 dark:to-green-800 dark:text-green-200'
                               : 'bg-gradient-to-r from-red-100 to-red-200 text-red-800 dark:from-red-900 dark:to-red-800 dark:text-red-200'
-                          }`}>
+                            }`}>
                             {member.remainingSoups} 次
                           </span>
                         </td>

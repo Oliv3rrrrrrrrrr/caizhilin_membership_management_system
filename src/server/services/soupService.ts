@@ -99,7 +99,7 @@ export class SoupService {
   static async deleteSoup(id: number): Promise<void> {
     const existing = await this.getSoupById(id);
     if (!existing) throw new Error('汤品不存在');
-    
+
     // 检查是否有关联的喝汤记录
     const relatedRecords = await prisma.soupRecord.findFirst({
       where: { soupId: id }
@@ -107,7 +107,7 @@ export class SoupService {
     if (relatedRecords) {
       throw new Error('该汤品有关联的喝汤记录，无法删除');
     }
-    
+
     await prisma.soup.delete({ where: { id } });
   }
 

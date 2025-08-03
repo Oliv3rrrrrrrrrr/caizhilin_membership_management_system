@@ -66,14 +66,14 @@ export async function PUT(
 
   } catch (error) {
     console.error('更新汤品信息失败:', error);
-    
+
     if (error instanceof Error) {
       if (error.message === '汤品不存在') {
         return ApiResponseBuilder.notFound(error.message);
       }
       return ApiResponseBuilder.badRequest(error.message);
     }
-    
+
     return ApiResponseBuilder.serverError('更新汤品信息失败');
   }
 }
@@ -102,7 +102,7 @@ export async function DELETE(
 
   } catch (error) {
     console.error('删除汤品失败:', error);
-    
+
     if (error instanceof Error) {
       if (error.message === '汤品不存在') {
         return ApiResponseBuilder.notFound(error.message);
@@ -112,7 +112,7 @@ export async function DELETE(
       }
       return ApiResponseBuilder.badRequest(error.message);
     }
-    
+
     return ApiResponseBuilder.serverError('删除汤品失败');
   }
 } 

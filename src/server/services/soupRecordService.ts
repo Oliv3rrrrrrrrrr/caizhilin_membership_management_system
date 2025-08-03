@@ -1,6 +1,5 @@
 import { PrismaClient } from '@prisma/client';
 import { CreateSoupRecordRequest, UpdateSoupRecordRequest, SoupRecordResponse, SoupRecordWithDetailsResponse } from '@/types/soupRecord';
-import { getSystemNow, parseSystemTime, toSystemISOString, isValidTime } from '@/lib/timeUtils';
 
 // 创建Prisma客户端
 const prisma = new PrismaClient();
@@ -39,7 +38,7 @@ export class SoupRecordService {
     return {
       data: records.map(record => ({
         id: record.id,
-        drinkTime: toSystemISOString(record.drinkTime),
+        drinkTime: record.drinkTime.toISOString(),
         membershipId: record.membershipId,
         soupId: record.soupId,
         membership: record.membership,
@@ -78,7 +77,7 @@ export class SoupRecordService {
     if (!record) return null;
     return {
       id: record.id,
-      drinkTime: toSystemISOString(record.drinkTime),
+      drinkTime: record.drinkTime.toISOString(),
       membership: record.membership,
       soup: record.soup
     };
@@ -133,7 +132,7 @@ export class SoupRecordService {
     });
     return records.map(record => ({
       id: record.id,
-      drinkTime: toSystemISOString(record.drinkTime),
+      drinkTime: record.drinkTime.toISOString(),
       membershipId: record.membershipId,
       soupId: record.soupId,
       membership: record.membership,
@@ -229,7 +228,7 @@ export class SoupRecordService {
     return {
       data: records.map(record => ({
         id: record.id,
-        drinkTime: toSystemISOString(record.drinkTime),
+        drinkTime: record.drinkTime.toISOString(),
         membershipId: record.membershipId,
         soupId: record.soupId,
         membership: record.membership,
@@ -249,13 +248,13 @@ export class SoupRecordService {
     const soup = await prisma.soup.findUnique({ where: { id: data.soupId } });
     if (!soup) throw new Error('汤品不存在');
     if (membership.remainingSoups <= 0) throw new Error('会员剩余汤品数量不足');
-    
+
     const result = await prisma.$transaction(async (tx) => {
       const record = await tx.soupRecord.create({
         data: {
           membershipId: data.membershipId,
           soupId: data.soupId,
-          drinkTime: data.drinkTime ? parseSystemTime(data.drinkTime) : getSystemNow(),
+          drinkTime: data.drinkTime ? new Date(data.drinkTime) : new Date(),
         },
         include: {
           membership: {
@@ -289,7 +288,7 @@ export class SoupRecordService {
     });
     return {
       id: result.id,
-      drinkTime: toSystemISOString(result.drinkTime),
+      drinkTime: result.drinkTime.toISOString(),
       membership: result.membership,
       soup: result.soup
     };
@@ -306,9 +305,9 @@ export class SoupRecordService {
     }
     const updateData: any = {};
     if (data.soupId !== undefined) updateData.soupId = data.soupId;
-    if (data.drinkTime !== undefined) updateData.drinkTime = parseSystemTime(data.drinkTime);
+    if (data.drinkTime !== undefined) updateData.drinkTime = new Date(data.drinkTime);
     if (Object.keys(updateData).length === 0) throw new Error('没有提供要更新的字段');
-    
+
     const record = await prisma.soupRecord.update({
       where: { id },
       data: updateData,
@@ -333,7 +332,7 @@ export class SoupRecordService {
     });
     return {
       id: record.id,
-      drinkTime: toSystemISOString(record.drinkTime),
+      drinkTime: record.drinkTime.toISOString(),
       membershipId: record.membershipId,
       soupId: record.soupId,
       membership: record.membership,
@@ -352,7 +351,7 @@ export class SoupRecordService {
   private static validateCreateData(data: CreateSoupRecordRequest): void {
     if (!data.membershipId || !data.soupId) throw new Error('会员ID和汤品ID都是必填项');
     if (data.membershipId <= 0 || data.soupId <= 0) throw new Error('会员ID和汤品ID必须是正整数');
-    if (data.drinkTime && !isValidTime(data.drinkTime)) {
+    if (data.drinkTime && isNaN(new Date(data.drinkTime).getTime())) {
       throw new Error('喝汤时间格式不正确');
     }
   }
@@ -360,7 +359,7 @@ export class SoupRecordService {
   // 验证更新数据
   private static validateUpdateData(data: UpdateSoupRecordRequest): void {
     if (data.soupId !== undefined && data.soupId <= 0) throw new Error('汤品ID必须是正整数');
-    if (data.drinkTime && !isValidTime(data.drinkTime)) {
+    if (data.drinkTime && isNaN(new Date(data.drinkTime).getTime())) {
       throw new Error('喝汤时间格式不正确');
     }
   }

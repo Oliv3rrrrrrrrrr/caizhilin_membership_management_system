@@ -2,15 +2,10 @@
 
 import { useRouter } from 'next/navigation';
 import {
-  FiUsers,
   FiPlus,
   FiCoffee,
   FiClipboard,
-  FiShield,
-  FiSettings,
   FiSearch,
-  FiDownload,
-  FiBarChart,
 } from 'react-icons/fi';
 
 interface QuickLinkCard {
