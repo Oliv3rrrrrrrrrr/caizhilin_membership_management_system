@@ -1,10 +1,15 @@
 import { NextRequest } from 'next/server';
 import { ChartService } from '@/server/services/chartService';
+import { authMiddleware } from '@/lib/middleware';
 import { ApiResponseBuilder } from '@/lib/response';
 
 export async function GET(request: NextRequest) {
   try {
-    // 获取查询参数
+    // 1. 认证中间件
+    const authResult = await authMiddleware(request);
+    if (authResult) return authResult;
+
+    // 2. 获取查询参数
     const { searchParams } = new URL(request.url);
     const type = searchParams.get('type');
 

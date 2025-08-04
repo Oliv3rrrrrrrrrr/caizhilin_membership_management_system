@@ -12,18 +12,21 @@
 7. [喝汤记录管理](#喝汤记录管理)
 8. [搜索功能](#搜索功能)
 9. [统计信息](#统计信息)
-10. [系统设置](#系统设置)
-11. [数据导出](#数据导出)
-12. [错误代码说明](#错误代码说明)
-13. [数据验证规则](#数据验证规则)
-14. [时间处理说明](#时间处理说明)
-15. [接口使用示例](#接口使用示例)
+10. [图表数据](#图表数据)
+11. [最近活动](#最近活动)
+12. [系统设置](#系统设置)
+13. [数据导出](#数据导出)
+14. [通知管理](#通知管理)
+15. [错误代码说明](#错误代码说明)
+16. [数据验证规则](#数据验证规则)
+17. [时间处理说明](#时间处理说明)
+18. [接口使用示例](#接口使用示例)
 
 ---
 
 ## 基础信息
 - **基础URL**: `/api`
-- **认证方式**: Bearer Token (JWT)，除登录和注册外所有接口均需
+- **认证方式**: Bearer Token (JWT)，除登录外所有接口均需
 - **时间格式**: 北京时间 (UTC+8)，ISO 8601 字符串
 - **响应格式**: JSON，所有响应均含 success/message/data/error/timestamp 字段
 
@@ -428,17 +431,57 @@
 
 ---
 
-## 系统设置
-- `GET /api/settings` 获取系统设置
-- `PUT /api/settings` 更新系统设置
-- **字段**：systemName/companyName/contactPhone/businessHours/timezone/dateFormat/timeFormat/pageSize/enableNotifications/enableAuditLog/backupFrequency/maxLoginAttempts/sessionTimeout/theme/language
+## 图表数据
+### 1. 获取图表数据
+- **URL**: `GET /api/charts`
+- **参数**：
+  | 参数 | 类型   | 必填 | 说明         |
+  |------|--------|------|--------------|
+  | type | string | 否   | 图表类型，不传则返回所有数据 |
+- **图表类型**：
+  - `memberGrowth`: 会员增长趋势
+  - `dailyRecords`: 每日喝汤记录
+  - `memberActivity`: 会员分布
+  - `cardTypeDistribution`: 卡类型分布
+  - `soupConsumption`: 汤品消费统计
+- **响应**：
+  | 字段                 | 类型   | 说明         |
+  |----------------------|--------|--------------|
+  | memberGrowth         | array  | 会员增长趋势数据 |
+  | dailyRecords         | array  | 每日喝汤记录数据 |
+  | memberActivity       | array  | 会员分布数据 |
+  | cardTypeDistribution | array  | 卡类型分布数据 |
+  | soupConsumption      | array  | 汤品消费统计数据 |
 
 ---
 
-## 数据导出
-- `GET /api/export?type=all|members|soups|records&format=json|csv|excel` 导出数据
-- **参数**：type/format/startDate/endDate
-- **响应**：包含导出数据和元数据
+## 最近活动
+### 1. 获取最近活动
+- **URL**: `GET /api/recent`
+- **参数**：
+  | 参数     | 类型   | 必填 | 说明         |
+  |----------|--------|------|--------------|
+  | limit    | number | 否   | 限制数量，默认10 |
+  | type     | string | 否   | 活动类型，默认all |
+  | page     | number | 否   | 页码，默认1  |
+- **响应**：
+  | 字段     | 类型   | 说明         |
+  |----------|--------|--------------|
+  | data     | array  | 活动数组     |
+  | total    | number | 总数         |
+  | page     | number | 当前页码     |
+  | pageSize | number | 每页数量     |
+- **活动对象字段**：
+  | 字段         | 类型   | 说明         |
+  |--------------|--------|--------------|
+  | id           | number | 活动ID       |
+  | type         | string | 活动类型     |
+  | title        | string | 活动标题     |
+  | description  | string | 活动描述     |
+  | timestamp    | string | 活动时间     |
+  | relatedId    | number | 关联ID       |
+  | relatedType  | string | 关联类型     |
+  | metadata     | object | 元数据       |
 
 ---
 
@@ -463,25 +506,6 @@
 
 ---
 
-## 时间处理说明
-- **系统时区配置**：所有时间均为系统配置时区时间（默认北京时间 UTC+8）
-- **环境变量配置**：
-  - 后端：`SYSTEM_TIMEZONE=Asia/Shanghai`
-  - 前端：`NEXT_PUBLIC_SYSTEM_TIMEZONE=Asia/Shanghai`
-- **时区处理逻辑**：
-  - 数据库存储：完整的时间信息（包含时区）
-  - 前端显示：统一显示为系统时区时间，格式为 `YYYY-MM-DD HH:mm`
-  - 时区转换：自动处理不同时区用户访问时的显示问题
-- **时间格式**：
-  - API响应：ISO 8601 字符串格式
-  - 前端显示：`YYYY-MM-DD HH:mm`（不显示秒数）
-  - 输入格式：`datetime-local`（只到分钟）
-- **统计基准**："今日"统计基于系统时区当天0点
-- **支持时区**：Asia/Shanghai（北京时间）、Australia/Sydney（悉尼时间）等
-- **跨时区访问**：系统自动处理时区转换，确保全球用户看到一致的时间
-
----
-
 ## 接口使用示例
 ### 登录获取Token
 ```bash
@@ -502,8 +526,8 @@ curl -X POST http://localhost:3000/api/memberships \
   -d '{
     "name": "张三",
     "phone": "13800138000",
-    "cardType": "980卡",
-    "remainingSoups": 30
+    "cardType": "1000卡",
+    "remainingSoups": 40
   }'
 ```
 ### 搜索会员
@@ -514,6 +538,16 @@ curl -X GET "http://localhost:3000/api/search?q=张三&type=members&page=1&pageS
 ### 喝汤记录搜索
 ```bash
 curl -X GET "http://localhost:3000/api/soup-records/search?q=张三&page=1&pageSize=10" \
+  -H "Authorization: Bearer YOUR_TOKEN_HERE"
+```
+### 获取图表数据
+```bash
+curl -X GET "http://localhost:3000/api/charts?type=memberGrowth" \
+  -H "Authorization: Bearer YOUR_TOKEN_HERE"
+```
+### 获取最近活动
+```bash
+curl -X GET "http://localhost:3000/api/recent?limit=10&page=1" \
   -H "Authorization: Bearer YOUR_TOKEN_HERE"
 ```
 ### 导出数据
