@@ -263,7 +263,6 @@ export default function Charts() {
                     outerRadius={80}
                     paddingAngle={5}
                     dataKey="value"
-                    label={({ name, value }) => `${name}: ${value}`}
                     labelLine={false}
                   >
                     {chartData.memberActivity.map((entry, index) => (
