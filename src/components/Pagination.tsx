@@ -67,7 +67,7 @@ export default function Pagination({
         <div className="flex items-center gap-1 mx-2">
           {getPageNumbers().map((p, idx) =>
             p === '...'
-              ? <span key={idx} className="px-2 text-gray-400">...</span>
+              ? <span key={idx} className="px-2 text-gray-400 dark:text-gray-500">...</span>
               : <button
                 key={p}
                 className={`w-9 h-9 rounded-full font-bold transition-all duration-150 text-base focus:outline-none focus:ring-2 focus:ring-blue-400 ${p === page

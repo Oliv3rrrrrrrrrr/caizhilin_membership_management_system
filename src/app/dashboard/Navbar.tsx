@@ -1,11 +1,13 @@
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
-import { FiLogOut, FiGrid } from 'react-icons/fi';
+import { FiLogOut, FiGrid, FiSun, FiMoon } from 'react-icons/fi';
 import LogoutConfirmModal from '@/components/LogoutConfirmModal';
+import { useTheme } from '@/components/ThemeProvider';
 
 export default function Navbar() {
   const router = useRouter();
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
+  const { theme, toggleTheme } = useTheme();
 
   const handleLogoutClick = () => {
     setIsLogoutModalOpen(true);
@@ -26,6 +28,18 @@ export default function Navbar() {
       </div>
       {/* 右侧操作区 */}
       <div className="flex items-center space-x-4">
+        {/* 暗黑模式切换 */}
+        <button
+          onClick={toggleTheme}
+          className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition cursor-pointer"
+          title={theme === 'light' ? '切换到暗黑模式' : '切换到亮色模式'}
+        >
+          {theme === 'light' ? (
+            <FiMoon className="w-5 h-5 text-gray-500 dark:text-gray-300" />
+          ) : (
+            <FiSun className="w-5 h-5 text-gray-500 dark:text-gray-300" />
+          )}
+        </button>
         {/* 退出 */}
         <button
           className="flex items-center gap-2 p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-800 transition cursor-pointer"

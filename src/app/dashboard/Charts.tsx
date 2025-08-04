@@ -16,7 +16,8 @@ import {
   CartesianGrid,
   Tooltip,
   Legend,
-  ResponsiveContainer
+  ResponsiveContainer,
+  LabelList
 } from 'recharts';
 import {
   FiTrendingUp,
@@ -175,9 +176,10 @@ export default function Charts() {
                   <YAxis stroke="#6B7280" />
                   <Tooltip
                     contentStyle={{
-                      backgroundColor: 'white',
-                      border: '1px solid #E5E7EB',
-                      borderRadius: '8px'
+                      backgroundColor: 'var(--tooltip-bg, white)',
+                      border: '1px solid var(--tooltip-border, #E5E7EB)',
+                      borderRadius: '8px',
+                      color: 'var(--tooltip-text, #374151)'
                     }}
                   />
                   <Line
@@ -186,7 +188,17 @@ export default function Charts() {
                     stroke="#3B82F6"
                     strokeWidth={3}
                     dot={{ fill: '#3B82F6', strokeWidth: 2, r: 4 }}
-                  />
+                  >
+                    <LabelList 
+                      dataKey="count" 
+                      position="top" 
+                      style={{ 
+                        fill: 'var(--tooltip-text, #6B7280)', 
+                        fontSize: '11px',
+                        fontWeight: '500'
+                      }} 
+                    />
+                  </Line>
                 </LineChart>
               </ResponsiveContainer>
             </div>
@@ -204,9 +216,10 @@ export default function Charts() {
                   <YAxis stroke="#6B7280" />
                   <Tooltip
                     contentStyle={{
-                      backgroundColor: 'white',
-                      border: '1px solid #E5E7EB',
-                      borderRadius: '8px'
+                      backgroundColor: 'var(--tooltip-bg, white)',
+                      border: '1px solid var(--tooltip-border, #E5E7EB)',
+                      borderRadius: '8px',
+                      color: 'var(--tooltip-text, #374151)'
                     }}
                   />
                   <Area
@@ -215,7 +228,17 @@ export default function Charts() {
                     stroke="#10B981"
                     fill="#10B981"
                     fillOpacity={0.3}
-                  />
+                  >
+                    <LabelList 
+                      dataKey="count" 
+                      position="top" 
+                      style={{ 
+                        fill: 'var(--tooltip-text, #6B7280)', 
+                        fontSize: '11px',
+                        fontWeight: '500'
+                      }} 
+                    />
+                  </Area>
                 </AreaChart>
               </ResponsiveContainer>
             </div>
@@ -240,6 +263,8 @@ export default function Charts() {
                     outerRadius={80}
                     paddingAngle={5}
                     dataKey="value"
+                    label={({ name, value }) => `${name}: ${value}`}
+                    labelLine={false}
                   >
                     {chartData.memberActivity.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={entry.color} />
@@ -247,9 +272,10 @@ export default function Charts() {
                   </Pie>
                   <Tooltip
                     contentStyle={{
-                      backgroundColor: 'white',
-                      border: '1px solid #E5E7EB',
-                      borderRadius: '8px'
+                      backgroundColor: 'var(--tooltip-bg, white)',
+                      border: '1px solid var(--tooltip-border, #E5E7EB)',
+                      borderRadius: '8px',
+                      color: 'var(--tooltip-text, #374151)'
                     }}
                   />
                   <Legend />
@@ -270,12 +296,23 @@ export default function Charts() {
                   <YAxis stroke="#6B7280" />
                   <Tooltip
                     contentStyle={{
-                      backgroundColor: 'white',
-                      border: '1px solid #E5E7EB',
-                      borderRadius: '8px'
+                      backgroundColor: 'var(--tooltip-bg, white)',
+                      border: '1px solid var(--tooltip-border, #E5E7EB)',
+                      borderRadius: '8px',
+                      color: 'var(--tooltip-text, #374151)'
                     }}
                   />
-                  <Bar dataKey="count" fill="#8B5CF6" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="count" fill="#8B5CF6" radius={[4, 4, 0, 0]}>
+                    <LabelList 
+                      dataKey="count" 
+                      position="top" 
+                      style={{ 
+                        fill: 'var(--tooltip-text, #6B7280)', 
+                        fontSize: '12px',
+                        fontWeight: '500'
+                      }} 
+                    />
+                  </Bar>
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -297,12 +334,23 @@ export default function Charts() {
                   <YAxis stroke="#6B7280" />
                   <Tooltip
                     contentStyle={{
-                      backgroundColor: 'white',
-                      border: '1px solid #E5E7EB',
-                      borderRadius: '8px'
+                      backgroundColor: 'var(--tooltip-bg, white)',
+                      border: '1px solid var(--tooltip-border, #E5E7EB)',
+                      borderRadius: '8px',
+                      color: 'var(--tooltip-text, #374151)'
                     }}
                   />
-                  <Bar dataKey="count" fill="#EF4444" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="count" fill="#EF4444" radius={[4, 4, 0, 0]}>
+                    <LabelList 
+                      dataKey="count" 
+                      position="top" 
+                      style={{ 
+                        fill: 'var(--tooltip-text, #6B7280)', 
+                        fontSize: '12px',
+                        fontWeight: '500'
+                      }} 
+                    />
+                  </Bar>
                 </BarChart>
               </ResponsiveContainer>
             </div>

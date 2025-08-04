@@ -78,7 +78,7 @@ export default function StatsCards() {
     }
   }, []);
 
-  if (loading) return <div className="text-gray-400">正在加载统计数据...</div>;
+  if (loading) return <div className="text-gray-400 dark:text-gray-500">正在加载统计数据...</div>;
   if (error) return <div className="text-red-500">{error}</div>;
   if (!stats) return null;
 
