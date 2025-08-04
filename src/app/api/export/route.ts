@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
     const startDate = searchParams.get('startDate');
     const endDate = searchParams.get('endDate');
 
-    let exportData: any = {};
+    const exportData: Record<string, unknown> = {};
 
     // 3. 根据类型导出数据
     if (type === 'all' || type === 'members') {
@@ -44,7 +44,7 @@ export async function GET(request: NextRequest) {
       format,
       startDate,
       endDate,
-      totalRecords: Object.values(exportData).reduce((acc: number, curr: any) => {
+      totalRecords: Object.values(exportData).reduce((acc: number, curr: unknown) => {
         return acc + (Array.isArray(curr) ? curr.length : 0);
       }, 0)
     };

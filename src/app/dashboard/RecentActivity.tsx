@@ -55,7 +55,7 @@ export default function RecentActivity() {
   const PAGE_SIZE = 10; // 每页显示的活动数量
 
   // 获取活动数据
-  const fetchActivities = async (isLoadMore: boolean = false) => {
+  const fetchActivities = useCallback(async (isLoadMore: boolean = false) => {
     try {
       if (isLoadMore) {
         setLoadingMore(true);
@@ -84,8 +84,8 @@ export default function RecentActivity() {
         setPage(1);
         setHasMore(data.length === PAGE_SIZE);
       }
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : '获取活动数据失败');
     } finally {
       if (isLoadMore) {
         setLoadingMore(false);
@@ -93,21 +93,21 @@ export default function RecentActivity() {
         setLoading(false);
       }
     }
-  };
+  }, [router, page, PAGE_SIZE]);
 
   // 刷新数据（使用useCallback优化性能）
   const handleRefresh = useCallback(async () => {
     setIsRefreshing(true);
     await fetchActivities(false);
     setTimeout(() => setIsRefreshing(false), 500);
-  }, []);
+  }, [fetchActivities]);
 
   // 加载更多数据
   const handleLoadMore = useCallback(async () => {
     if (!loadingMore && hasMore) {
       await fetchActivities(true);
     }
-  }, [loadingMore, hasMore]);
+  }, [loadingMore, hasMore, fetchActivities]);
 
   // 处理活动点击（使用useCallback优化性能）
   const handleActivityClick = useCallback((activity: RecentActivity) => {
@@ -132,7 +132,7 @@ export default function RecentActivity() {
 
   useEffect(() => {
     fetchActivities(false);
-  }, []);
+  }, [fetchActivities]);
 
   if (loading) {
     return (
@@ -159,17 +159,17 @@ export default function RecentActivity() {
   }
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6">
+    <div className="bg-white dark:bg-gray-800 rounded-xl sm:rounded-2xl shadow-lg p-4 sm:p-6">
       {/* 标题栏 */}
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-xl font-bold text-gray-800 dark:text-white">最近活动</h2>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 sm:mb-6 space-y-3 sm:space-y-0">
+        <h2 className="text-lg sm:text-xl font-bold text-gray-800 dark:text-white">最近活动</h2>
         <div className="flex items-center space-x-2">
           {/* 筛选按钮 */}
           <div className="relative">
             <select
               value={filterType}
               onChange={(e) => setFilterType(e.target.value as ActivityType | 'all')}
-              className="appearance-none bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 pl-3 pr-8 py-3 rounded-lg text-sm border-0 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
+              className="appearance-none bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 pl-3 pr-8 py-2 sm:py-3 rounded-lg text-sm border-0 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
             >
               <option value="all">全部</option>
               <option value="membership">会员</option>
@@ -210,21 +210,21 @@ export default function RecentActivity() {
                 {/* 活动卡片 */}
                 <div
                   onClick={() => handleActivityClick(activity)}
-                  className={`relative ml-12 p-4 rounded-xl border border-gray-200 dark:border-gray-700 hover:shadow-md transition-all duration-200 cursor-pointer group ${activity.relatedId ? 'hover:border-blue-300 dark:hover:border-blue-600' : ''
+                  className={`relative ml-8 sm:ml-12 p-3 sm:p-4 rounded-lg sm:rounded-xl border border-gray-200 dark:border-gray-700 hover:shadow-md transition-all duration-200 cursor-pointer group ${activity.relatedId ? 'hover:border-blue-300 dark:hover:border-blue-600' : ''
                     }`}
                 >
                   {/* 图标 */}
-                  <div className={`absolute -left-6 top-4 w-12 h-12 rounded-full bg-gradient-to-br ${config.color} flex items-center justify-center text-white shadow-lg group-hover:scale-110 transition-transform duration-200`}>
+                  <div className={`absolute -left-4 sm:-left-6 top-3 sm:top-4 w-8 h-8 sm:w-12 sm:h-12 rounded-full bg-gradient-to-br ${config.color} flex items-center justify-center text-white shadow-lg group-hover:scale-110 transition-transform duration-200`}>
                     {config.icon}
                   </div>
 
                   {/* 内容 */}
-                  <div className="ml-8">
-                    <div className="flex items-center justify-between mb-2">
-                      <h3 className="font-semibold text-gray-800 dark:text-white">
+                  <div className="ml-6 sm:ml-8">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-2 space-y-1 sm:space-y-0">
+                      <h3 className="font-semibold text-gray-800 dark:text-white text-sm sm:text-base">
                         {activity.title}
                       </h3>
-                      <div className="text-right">
+                      <div className="text-left sm:text-right">
                         <div className="text-xs text-gray-500 dark:text-gray-400">
                           {formatTime(activity.timestamp)}
                         </div>

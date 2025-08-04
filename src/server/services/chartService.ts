@@ -21,7 +21,7 @@ export class ChartService {
     // 转换为前端需要的格式
     const monthNames = ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'];
     const formattedData = monthNames.map((monthName, index) => {
-      const monthData = (memberGrowth as any[]).find(item => Number(item.month) === index + 1);
+      const monthData = (memberGrowth as Array<{ month: string; count: string }>).find(item => Number(item.month) === index + 1);
       return {
         month: monthName,
         count: monthData ? Number(monthData.count) : 0
@@ -62,7 +62,7 @@ export class ChartService {
       
       // 匹配数据库数据
       const dateStrForMatch = targetDate.toISOString().split('T')[0];
-      const dayData = (dailyRecords as any[]).find(item => item.date.toISOString().split('T')[0] === dateStrForMatch);
+      const dayData = (dailyRecords as Array<{ date: Date; count: string }>).find(item => item.date.toISOString().split('T')[0] === dateStrForMatch);
       
       formattedData.push({
         date: dateStr,
@@ -133,7 +133,7 @@ export class ChartService {
       ORDER BY count DESC
     `;
 
-    const formattedData = (soupConsumption as any[]).map(item => ({
+    const formattedData = (soupConsumption as Array<{ name: string; count: string }>).map(item => ({
       name: item.name,
       count: Number(item.count)
     }));

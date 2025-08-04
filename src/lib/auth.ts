@@ -15,8 +15,16 @@ export async function verifyPassword(password: string, hashedPassword: string): 
   return await bcrypt.compare(password, hashedPassword);
 }
 
+// JWT payload 类型定义
+interface JWTPayload {
+  userId: number;
+  username: string;
+  role: string;
+  [key: string]: unknown;
+}
+
 // 生成JWT token
-export function generateToken(payload: any): string {
+export function generateToken(payload: JWTPayload): string {
   // 1. 获取JWT_SECRET
   const secret = process.env.JWT_SECRET;
   // 2. 如果JWT_SECRET未设置，则抛出错误
@@ -28,7 +36,7 @@ export function generateToken(payload: any): string {
 }
 
 // 验证JWT token
-export function verifyToken(token: string): any {
+export function verifyToken(token: string): JWTPayload {
   // 1. 获取JWT_SECRET
   const secret = process.env.JWT_SECRET;
   // 2. 如果JWT_SECRET未设置，则抛出错误
@@ -38,8 +46,8 @@ export function verifyToken(token: string): any {
 
   try {
     // 3. 验证JWT token
-    return jwt.verify(token, secret);
-  } catch (error) {
+    return jwt.verify(token, secret) as JWTPayload;
+  } catch {
     // 4. 如果验证失败，则抛出错误
     throw new Error("Invalid token");
   }

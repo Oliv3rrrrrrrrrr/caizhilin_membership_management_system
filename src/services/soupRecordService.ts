@@ -88,7 +88,7 @@ export async function getSoupRecordStats(token: string): Promise<{ total: number
 }
 
 // 搜索喝汤记录（分页）
-export async function searchSoupRecords(query: string, token: string, page: number = 1, pageSize: number = 10): Promise<{ records: any[]; total: number; page: number; pageSize: number }> {
+export async function searchSoupRecords(query: string, token: string, page: number = 1, pageSize: number = 10): Promise<{ records: SoupRecordResponse[]; total: number; page: number; pageSize: number }> {
   const res = await fetch(`/api/soup-records/search?q=${encodeURIComponent(query)}&page=${page}&pageSize=${pageSize}`, {
     headers: { Authorization: `Bearer ${token}` }
   });

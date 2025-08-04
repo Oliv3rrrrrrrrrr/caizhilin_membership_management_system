@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
       return ApiResponseBuilder.badRequest('搜索关键词不能为空');
     }
 
-    let results: any = {};
+    const results: Record<string, unknown> = {};
 
     // 4. 根据类型搜索
     if (type === 'all' || type === 'members') {

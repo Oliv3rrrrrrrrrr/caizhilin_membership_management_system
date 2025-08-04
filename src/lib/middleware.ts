@@ -1,10 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyToken } from '@/lib/auth';
 
+// JWT payload 类型定义
+interface JWTPayload {
+  userId: number;
+  username: string;
+  role: string;
+  [key: string]: unknown;
+}
 
 // 扩展请求类型以包含用户信息
 interface AuthenticatedRequest extends NextRequest {
-  user?: any;
+  user?: JWTPayload;
 }
 
 // 认证中间件
@@ -36,7 +43,7 @@ export async function authMiddleware(request: NextRequest): Promise<NextResponse
 
     // 6. 继续处理请求
     return null;
-  } catch (error) {
+  } catch {
     // 7. 如果验证失败，则返回401错误
     return NextResponse.json(
       {

@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
 
     // 3. 返回成功响应
     return ApiResponseBuilder.success(stats, '统计数据获取成功');
-  } catch (error) {
+  } catch {
     return ApiResponseBuilder.serverError('统计数据获取失败');
   }
 }

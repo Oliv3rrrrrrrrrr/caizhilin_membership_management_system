@@ -33,7 +33,7 @@ export async function GET(request: NextRequest) {
         const allData = await ChartService.getAllChartData();
         return ApiResponseBuilder.success(allData);
     }
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error('图表数据获取失败:', err);
     return ApiResponseBuilder.serverError('获取图表数据失败');
   }

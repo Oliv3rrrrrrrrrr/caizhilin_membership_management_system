@@ -71,7 +71,7 @@ export default function StatsCards() {
     if (token) {
       getStats(token)
         .then(setStats)
-        .catch((e: any) => setError(e.message))
+        .catch((e: unknown) => setError(e instanceof Error ? e.message : '获取统计数据失败'))
         .finally(() => setLoading(false));
     } else {
       setLoading(false);
@@ -83,7 +83,7 @@ export default function StatsCards() {
   if (!stats) return null;
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6 mb-8">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 sm:gap-6 mb-6 sm:mb-8">
       {CARD_CONFIG.map((card) => (
         <StatCard
           key={card.key}
@@ -116,17 +116,17 @@ function StatCard({
 }) {
   return (
     <div
-      className={`flex items-center bg-gradient-to-br ${color} rounded-2xl shadow-lg p-6 min-h-[100px] transition-transform duration-200 hover:scale-105 hover:shadow-2xl group`}
+      className={`flex items-center bg-gradient-to-br ${color} rounded-xl sm:rounded-2xl shadow-lg p-4 sm:p-6 min-h-[90px] sm:min-h-[110px] transition-transform duration-200 hover:scale-105 hover:shadow-2xl group`}
     >
-      <div className={`w-14 h-14 flex items-center justify-center rounded-full ${iconBg} bg-opacity-90 mr-5 group-hover:scale-110 transition-all`}> 
+      <div className={`w-10 h-10 sm:w-14 sm:h-14 flex items-center justify-center rounded-full ${iconBg} bg-opacity-90 mr-3 sm:mr-5 group-hover:scale-110 transition-all`}> 
         {icon}
       </div>
-      <div className="flex-1">
-        <div className="text-3xl md:text-4xl font-extrabold text-white drop-shadow-sm tracking-wide">{value}</div>
-        <div className="text-xs md:text-sm text-white/80 mt-1 tracking-wide font-medium">{label}</div>
+      <div className="flex-1 min-w-0">
+        <div className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-white drop-shadow-sm tracking-wide break-words">{value}</div>
+        <div className="text-xs sm:text-sm text-white/80 mt-1 tracking-wide font-medium break-words leading-tight">{label}</div>
         {trend && (
           <div className={`flex items-center mt-1 text-xs ${trend === 'up' ? 'text-green-200' : 'text-red-200'}`}>
-            {trend === 'up' ? '▲' : '▼'} 今日趋势
+            {trend === 'up' ? '▲' : '▼'} <span className="hidden sm:inline">今日趋势</span>
           </div>
         )}
       </div>

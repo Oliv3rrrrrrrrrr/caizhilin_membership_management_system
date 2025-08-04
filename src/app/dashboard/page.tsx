@@ -2,7 +2,6 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import Navbar from './Navbar';
 import Sidebar from './Sidebar';
 import StatsCards from './StatsCards';
 import QuickLinks from './QuickLinks';
@@ -22,15 +21,16 @@ export default function DashboardPage() {
   }, [router]);
 
   return (
-    <div className="min-h-screen flex">
+    <div className="min-h-screen flex flex-col lg:flex-row">
       <Sidebar />
-      <div className="flex-1 flex flex-col ml-56">
-        <Navbar />
-        <main className="flex-1 p-8 bg-gray-50 dark:bg-gray-900 overflow-auto">
-          <StatsCards />
-          <QuickLinks />
-          <RecentActivity />
-          <Charts />
+      <div className="flex-1 flex flex-col lg:ml-72">
+        <main className="flex-1 p-4 sm:p-6 lg:p-8 bg-gray-50 dark:bg-gray-900 overflow-auto mt-40 lg:mt-0">
+          <div className="max-w-full mx-auto space-y-4 sm:space-y-6">
+            <StatsCards />
+            <QuickLinks />
+            <RecentActivity />
+            <Charts />
+          </div>
         </main>
       </div>
     </div>

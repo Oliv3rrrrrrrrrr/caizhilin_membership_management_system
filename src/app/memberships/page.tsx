@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   FiUsers,
@@ -59,7 +59,7 @@ export default function MembershipsPage() {
   const [stats, setStats] = useState<{ total: number; active: number; inactive: number; cardTypeCount: number }>({ total: 0, active: 0, inactive: 0, cardTypeCount: 0 }); // 统计数据
 
   // 主列表分页获取
-  const fetchMemberships = async (pageNum = page, size = pageSize) => {
+  const fetchMemberships = useCallback(async (pageNum = page, size = pageSize) => {
     try {
       setLoading(true);
       const token = localStorage.getItem('token');
@@ -72,15 +72,15 @@ export default function MembershipsPage() {
       setTotal(result.total);
       setPage(result.page);
       setPageSize(result.pageSize);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : '获取会员列表失败');
     } finally {
       setLoading(false);
     }
-  };
+  }, [router, page, pageSize]);
 
   // 搜索分页获取
-  const fetchSearchResults = async (term = searchTerm, pageNum = searchPage, size = searchPageSize) => {
+  const fetchSearchResults = useCallback(async (term = searchTerm, pageNum = searchPage, size = searchPageSize) => {
     if (!term.trim()) return;
     try {
       setSearchLoading(true);
@@ -95,12 +95,12 @@ export default function MembershipsPage() {
       setSearchTotal(result.total);
       setSearchPage(result.page);
       setSearchPageSize(result.pageSize);
-    } catch (err: any) {
-      setSearchError(err.message);
+    } catch (err: unknown) {
+      setSearchError(err instanceof Error ? err.message : '搜索失败');
     } finally {
       setSearchLoading(false);
     }
-  };
+  }, [router, searchTerm, searchPage, searchPageSize]);
 
   // 检查URL参数中的成功消息
   useEffect(() => {
@@ -125,13 +125,13 @@ export default function MembershipsPage() {
       } catch { }
     };
     fetchAll();
-  }, [page, pageSize]);
+  }, [page, pageSize, fetchMemberships]);
 
   useEffect(() => {
     if (isSearching) {
       fetchSearchResults(searchTerm, searchPage, searchPageSize);
     }
-  }, [isSearching, searchPage, searchPageSize]);
+  }, [isSearching, searchPage, searchPageSize, searchTerm, fetchSearchResults]);
 
   // 刷新数据
   const handleRefresh = async () => {
@@ -154,8 +154,8 @@ export default function MembershipsPage() {
       }
       await deleteMembership(id, token);
       await fetchMemberships(); // 重新加载列表
-    } catch (err: any) {
-      alert('删除失败: ' + err.message);
+    } catch (err: unknown) {
+      alert('删除失败: ' + (err instanceof Error ? err.message : '删除失败'));
     }
   };
 
@@ -184,8 +184,8 @@ export default function MembershipsPage() {
 
   // 排序会员
   const sortedMemberships = [...filteredMemberships].sort((a, b) => {
-    let aValue: any;
-    let bValue: any;
+    let aValue: string | number | Date;
+    let bValue: string | number | Date;
 
     switch (sortField) {
       case 'name':
@@ -250,139 +250,144 @@ export default function MembershipsPage() {
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
       {/* 页面头部 */}
       <div className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
-        <div className="max-w-7xl mx-auto px-6 py-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
+        <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
+            <div className="flex items-center space-x-3 sm:space-x-4">
               <div className="flex items-center">
-                <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
-                  <FiUsers className="text-white text-xl" />
+                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
+                  <FiUsers className="text-white text-lg sm:text-xl" />
                 </div>
-                <div className="ml-4">
-                  <h1 className="text-3xl font-bold text-gray-900 dark:text-white">会员管理</h1>
-                  <p className="text-gray-600 dark:text-gray-400 mt-1">
+                <div className="ml-3 sm:ml-4">
+                  <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">会员管理</h1>
+                  <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 mt-1">
                     管理系统中的所有会员信息 • 共 {stats.total} 位会员
                   </p>
                 </div>
               </div>
             </div>
-            <div className="flex items-center space-x-3">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center space-y-2 sm:space-y-0 sm:space-x-2 lg:space-x-3">
               <button
                 onClick={() => router.push('/dashboard')}
-                className="px-4 py-2 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white rounded-xl flex items-center font-medium transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 cursor-pointer"
+                className="px-3 sm:px-4 py-2 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white rounded-xl flex items-center justify-center font-medium transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 cursor-pointer text-sm sm:text-base"
               >
-                <FiHome className="mr-2" />
-                返回主页
+                <FiHome className="mr-1 sm:mr-2 text-sm sm:text-base" />
+                <span className="hidden sm:inline">返回主页</span>
+                <span className="sm:hidden">主页</span>
               </button>
               <button
                 onClick={() => router.push('/memberships/new')}
-                className="px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-xl flex items-center font-medium transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 cursor-pointer"
+                className="px-3 sm:px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-xl flex items-center justify-center font-medium transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 cursor-pointer text-sm sm:text-base"
               >
-                <FiPlus className="mr-2" />
-                新增会员
+                <FiPlus className="mr-1 sm:mr-2 text-sm sm:text-base" />
+                <span className="hidden sm:inline">新增会员</span>
+                <span className="sm:hidden">新增</span>
               </button>
               <button
                 onClick={handleRefresh}
                 disabled={isRefreshing}
-                className="px-4 py-2 bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 text-white rounded-xl flex items-center font-medium transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                className="px-3 sm:px-4 py-2 bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 text-white rounded-xl flex items-center justify-center font-medium transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer text-sm sm:text-base"
               >
-                <FiRefreshCw className={`mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
-                {isRefreshing ? '刷新中...' : '刷新'}
+                <FiRefreshCw className={`mr-1 sm:mr-2 text-sm sm:text-base ${isRefreshing ? 'animate-spin' : ''}`} />
+                <span className="hidden sm:inline">{isRefreshing ? '刷新中...' : '刷新'}</span>
+                <span className="sm:hidden">{isRefreshing ? '刷新中' : '刷新'}</span>
               </button>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-6 py-8">
+      <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         {/* 成功消息 */}
         {successMessage && (
-          <div className="mb-8 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-2xl p-6">
+          <div className="mb-6 sm:mb-8 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-xl sm:rounded-2xl p-4 sm:p-6">
             <div className="flex items-center">
-              <FiCheckCircle className="text-green-500 mr-3 text-xl" />
-              <p className="text-green-600 dark:text-green-400 font-medium">{successMessage}</p>
+              <FiCheckCircle className="text-green-500 mr-2 sm:mr-3 text-lg sm:text-xl" />
+              <p className="text-green-600 dark:text-green-400 font-medium text-sm sm:text-base">{successMessage}</p>
             </div>
           </div>
         )}
 
         {/* 统计卡片 */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 border border-gray-100 dark:border-gray-700 hover:shadow-xl transition-all duration-300 transform hover:scale-105">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
+          <div className="bg-white dark:bg-gray-800 rounded-xl sm:rounded-2xl shadow-lg p-4 sm:p-6 border border-gray-100 dark:border-gray-700 hover:shadow-xl transition-all duration-300 transform hover:scale-105">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">总会员数</p>
-                <p className="text-3xl font-bold text-gray-900 dark:text-white mt-2">{stats.total}</p>
+                <p className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400">总会员数</p>
+                <p className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mt-1 sm:mt-2">{stats.total}</p>
               </div>
-              <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center">
-                <FiUsers className="text-white text-xl" />
+              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center">
+                <FiUsers className="text-white text-lg sm:text-xl" />
               </div>
             </div>
           </div>
 
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 border border-gray-100 dark:border-gray-700 hover:shadow-xl transition-all duration-300 transform hover:scale-105">
+          <div className="bg-white dark:bg-gray-800 rounded-xl sm:rounded-2xl shadow-lg p-4 sm:p-6 border border-gray-100 dark:border-gray-700 hover:shadow-xl transition-all duration-300 transform hover:scale-105">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">活跃会员</p>
-                <p className="text-3xl font-bold text-green-600 dark:text-green-400 mt-2">{stats.active}</p>
+                <p className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400">活跃会员</p>
+                <p className="text-2xl sm:text-3xl font-bold text-green-600 dark:text-green-400 mt-1 sm:mt-2">{stats.active}</p>
               </div>
-              <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center">
-                <FiTrendingUp className="text-white text-xl" />
+              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center">
+                <FiTrendingUp className="text-white text-lg sm:text-xl" />
               </div>
             </div>
           </div>
 
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 border border-gray-100 dark:border-gray-700 hover:shadow-xl transition-all duration-300 transform hover:scale-105">
+          <div className="bg-white dark:bg-gray-800 rounded-xl sm:rounded-2xl shadow-lg p-4 sm:p-6 border border-gray-100 dark:border-gray-700 hover:shadow-xl transition-all duration-300 transform hover:scale-105">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">待续费会员</p>
-                <p className="text-3xl font-bold text-orange-600 dark:text-orange-400 mt-2">{stats.inactive}</p>
+                <p className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400">待续费会员</p>
+                <p className="text-2xl sm:text-3xl font-bold text-orange-600 dark:text-orange-400 mt-1 sm:mt-2">{stats.inactive}</p>
               </div>
-              <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl flex items-center justify-center">
-                <FiTrendingDown className="text-white text-xl" />
+              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl flex items-center justify-center">
+                <FiTrendingDown className="text-white text-lg sm:text-xl" />
               </div>
             </div>
           </div>
 
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 border border-gray-100 dark:border-gray-700 hover:shadow-xl transition-all duration-300 transform hover:scale-105">
+          <div className="bg-white dark:bg-gray-800 rounded-xl sm:rounded-2xl shadow-lg p-4 sm:p-6 border border-gray-100 dark:border-gray-700 hover:shadow-xl transition-all duration-300 transform hover:scale-105">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">卡类型</p>
-                <p className="text-3xl font-bold text-purple-600 dark:text-purple-400 mt-2">{stats.cardTypeCount}</p>
+                <p className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400">卡类型</p>
+                <p className="text-2xl sm:text-3xl font-bold text-purple-600 dark:text-purple-400 mt-1 sm:mt-2">{stats.cardTypeCount}</p>
               </div>
-              <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center">
-                <FiCreditCard className="text-white text-xl" />
+              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center">
+                <FiCreditCard className="text-white text-lg sm:text-xl" />
               </div>
             </div>
           </div>
         </div>
 
         {/* 搜索和筛选 */}
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 mb-8 border border-gray-100 dark:border-gray-700">
+        <div className="bg-white dark:bg-gray-800 rounded-xl sm:rounded-2xl shadow-lg p-4 sm:p-6 mb-6 sm:mb-8 border border-gray-100 dark:border-gray-700">
           <div className="flex flex-col lg:flex-row gap-4">
             {/* 搜索框 */}
             <div className="flex-1">
               <div className="relative">
-                <FiSearch className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 text-lg" />
+                <FiSearch className="absolute left-3 sm:left-4 top-1/2 transform -translate-y-1/2 text-gray-400 text-base sm:text-lg" />
                 <input
                   type="text"
                   placeholder="搜索会员姓名、手机号或卡号..."
                   value={searchTerm}
                   onChange={e => setSearchTerm(e.target.value)}
                   onKeyDown={e => e.key === 'Enter' && handleSearch()}
-                  className="w-full pl-12 pr-4 py-4 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-lg transition-all duration-200"
+                  className="w-full pl-10 sm:pl-12 pr-4 py-3 sm:py-4 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm sm:text-lg transition-all duration-200"
                 />
-                <div className="absolute right-4 top-1/2 transform -translate-y-1/2 flex space-x-2">
+                <div className="absolute right-2 sm:right-4 top-1/2 transform -translate-y-1/2 flex space-x-1 sm:space-x-2">
                   <button
                     onClick={handleSearch}
-                    className="px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-lg font-medium shadow-md hover:shadow-lg transition-all duration-200 text-sm cursor-pointer"
+                    className="px-2 sm:px-4 py-1.5 sm:py-2 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-lg font-medium shadow-md hover:shadow-lg transition-all duration-200 text-xs sm:text-sm cursor-pointer"
                   >
-                    搜索
+                    <span className="hidden sm:inline">搜索</span>
+                    <span className="sm:hidden">搜</span>
                   </button>
                   <button
                     onClick={handleClearSearch}
                     disabled={!isSearching && !searchTerm}
-                    className="px-4 py-2 bg-gradient-to-r from-gray-300 to-gray-400 hover:from-gray-400 hover:to-gray-500 text-gray-700 rounded-lg font-medium shadow-md hover:shadow-lg transition-all duration-200 text-sm disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                    className="px-2 sm:px-4 py-1.5 sm:py-2 bg-gradient-to-r from-gray-300 to-gray-400 hover:from-gray-400 hover:to-gray-500 text-gray-700 rounded-lg font-medium shadow-md hover:shadow-lg transition-all duration-200 text-xs sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                   >
-                    清除
+                    <span className="hidden sm:inline">清除</span>
+                    <span className="sm:hidden">清</span>
                   </button>
                 </div>
               </div>
@@ -391,28 +396,29 @@ export default function MembershipsPage() {
             {/* 筛选按钮 */}
             <button
               onClick={() => setShowFilters(!showFilters)}
-              className={`px-6 py-4 rounded-xl flex items-center transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 cursor-pointer ${showFilters
+              className={`px-4 sm:px-6 py-3 sm:py-4 rounded-xl flex items-center justify-center transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 cursor-pointer text-sm sm:text-base ${showFilters
                 ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white'
                 : 'bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-600 text-gray-700 dark:text-gray-300'
                 }`}
             >
-              <FiFilter className="mr-2" />
-              筛选
+              <FiFilter className="mr-1 sm:mr-2 text-sm sm:text-base" />
+              <span className="hidden sm:inline">筛选</span>
+              <span className="sm:hidden">筛</span>
             </button>
           </div>
 
           {/* 筛选选项 */}
           {showFilters && (
-            <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700 animate-fadeIn">
+            <div className="mt-4 sm:mt-6 pt-4 sm:pt-6 border-t border-gray-200 dark:border-gray-700 animate-fadeIn">
               <div className="flex flex-wrap gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <div className="w-full sm:w-auto">
+                  <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     卡类型筛选
                   </label>
                   <select
                     value={filterCardType}
                     onChange={(e) => setFilterCardType(e.target.value)}
-                    className="px-4 py-3 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-all duration-200 cursor-pointer"
+                    className="w-full sm:w-auto px-3 sm:px-4 py-2 sm:py-3 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition-all duration-200 cursor-pointer text-sm sm:text-base"
                   >
                     <option value="">全部类型</option>
                     {cardTypes.map(type => (
@@ -427,13 +433,13 @@ export default function MembershipsPage() {
 
         {/* 搜索结果区（独立于主列表） */}
         {isSearching && (
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 mb-8 border border-gray-100 dark:border-gray-700 min-h-[300px]">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-semibold text-gray-900 dark:text-white flex items-center">
-                <FiSearch className="mr-3 text-blue-600" />
+          <div className="bg-white dark:bg-gray-800 rounded-xl sm:rounded-2xl shadow-lg p-4 sm:p-6 mb-6 sm:mb-8 border border-gray-100 dark:border-gray-700 min-h-[300px]">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 space-y-2 sm:space-y-0">
+              <h2 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white flex items-center">
+                <FiSearch className="mr-2 sm:mr-3 text-blue-600 text-base sm:text-lg" />
                 搜索结果
               </h2>
-              <span className="bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 px-3 py-1 rounded-full text-sm font-medium">
+              <span className="bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium self-start sm:self-auto">
                 {searchTotal} 位会员
               </span>
             </div>
@@ -469,15 +475,15 @@ export default function MembershipsPage() {
               </div>
             ) : (
               <>
-                <div>
+                <div className="overflow-x-auto">
                   <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                     <thead className="bg-gray-50 dark:bg-gray-700">
                       <tr>
-                        <th className="px-8 py-4 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">会员信息</th>
-                        <th className="px-8 py-4 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">卡号</th>
-                        <th className="px-8 py-4 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">卡类型</th>
-                        <th className="px-8 py-4 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">剩余汤品</th>
-                        <th className="px-8 py-4 text-right text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">操作</th>
+                        <th className="px-4 sm:px-6 lg:px-8 py-3 sm:py-4 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">会员信息</th>
+                        <th className="px-4 sm:px-6 lg:px-8 py-3 sm:py-4 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">卡号</th>
+                        <th className="px-4 sm:px-6 lg:px-8 py-3 sm:py-4 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">卡类型</th>
+                        <th className="px-4 sm:px-6 lg:px-8 py-3 sm:py-4 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">剩余汤品</th>
+                        <th className="px-4 sm:px-6 lg:px-8 py-3 sm:py-4 text-right text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">操作</th>
                       </tr>
                     </thead>
                     <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
@@ -487,64 +493,64 @@ export default function MembershipsPage() {
                           className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-200 transform hover:scale-[1.01]"
                           style={{ animationDelay: `${index * 50}ms` }}
                         >
-                          <td className="px-8 py-6 whitespace-nowrap">
+                          <td className="px-4 sm:px-6 lg:px-8 py-4 sm:py-6 whitespace-nowrap">
                             <div className="flex items-center">
-                              <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center mr-4">
-                                <span className="text-white font-semibold text-sm">
+                              <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center mr-3 sm:mr-4">
+                                <span className="text-white font-semibold text-xs sm:text-sm">
                                   {membership.name.charAt(0)}
                                 </span>
                               </div>
                               <div>
-                                <div className="text-lg font-semibold text-gray-900 dark:text-white">
+                                <div className="text-sm sm:text-lg font-semibold text-gray-900 dark:text-white">
                                   {membership.name}
                                 </div>
-                                <div className="text-sm text-gray-500 dark:text-gray-400">
+                                <div className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
                                   {membership.phone}
                                 </div>
                               </div>
                             </div>
                           </td>
-                          <td className="px-8 py-6 whitespace-nowrap">
-                            <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gradient-to-r from-blue-100 to-blue-200 text-blue-800 dark:from-blue-900 dark:to-blue-800 dark:text-blue-200">
+                          <td className="px-4 sm:px-6 lg:px-8 py-4 sm:py-6 whitespace-nowrap">
+                            <span className="inline-flex items-center px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium bg-gradient-to-r from-blue-100 to-blue-200 text-blue-800 dark:from-blue-900 dark:to-blue-800 dark:text-blue-200">
                               {membership.cardNumber}
                             </span>
                           </td>
-                          <td className="px-8 py-6 whitespace-nowrap">
-                            <span className="text-lg font-medium text-gray-900 dark:text-white">
+                          <td className="px-4 sm:px-6 lg:px-8 py-4 sm:py-6 whitespace-nowrap">
+                            <span className="text-sm sm:text-lg font-medium text-gray-900 dark:text-white">
                               {membership.cardType}
                             </span>
                           </td>
-                          <td className="px-8 py-6 whitespace-nowrap">
-                            <span className={`inline-flex items-center px-4 py-2 rounded-full text-sm font-semibold ${membership.remainingSoups > 0
+                          <td className="px-4 sm:px-6 lg:px-8 py-4 sm:py-6 whitespace-nowrap">
+                            <span className={`inline-flex items-center px-2 sm:px-4 py-1 sm:py-2 rounded-full text-xs sm:text-sm font-semibold ${membership.remainingSoups > 0
                               ? 'bg-gradient-to-r from-green-100 to-green-200 text-green-800 dark:from-green-900 dark:to-green-800 dark:text-green-200'
                               : 'bg-gradient-to-r from-red-100 to-red-200 text-red-800 dark:from-red-900 dark:to-red-800 dark:text-red-200'
                               }`}>
-                              <FiPackage className="mr-2" />
+                              <FiPackage className="mr-1 sm:mr-2 text-xs sm:text-sm" />
                               {membership.remainingSoups} 次
                             </span>
                           </td>
-                          <td className="px-8 py-6 whitespace-nowrap text-right text-sm font-medium">
-                            <div className="flex items-center justify-end space-x-3">
+                          <td className="px-4 sm:px-6 lg:px-8 py-4 sm:py-6 whitespace-nowrap text-right text-xs sm:text-sm font-medium">
+                            <div className="flex items-center justify-end space-x-1 sm:space-x-3">
                               <button
                                 onClick={() => router.push(`/memberships/${membership.id}`)}
-                                className="p-2 text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-all duration-200 cursor-pointer"
+                                className="p-1.5 sm:p-2 text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-all duration-200 cursor-pointer"
                                 title="查看详情"
                               >
-                                <FiEye className="h-5 w-5" />
+                                <FiEye className="h-4 w-4 sm:h-5 sm:w-5" />
                               </button>
                               <button
                                 onClick={() => router.push(`/memberships/${membership.id}/edit`)}
-                                className="p-2 text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-lg transition-all duration-200 cursor-pointer"
+                                className="p-1.5 sm:p-2 text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-lg transition-all duration-200 cursor-pointer"
                                 title="编辑"
                               >
-                                <FiEdit2 className="h-5 w-5" />
+                                <FiEdit2 className="h-4 w-4 sm:h-5 sm:w-5" />
                               </button>
                               <button
                                 onClick={() => handleDelete(membership.id, membership.name)}
-                                className="p-2 text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all duration-200 cursor-pointer"
+                                className="p-1.5 sm:p-2 text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all duration-200 cursor-pointer"
                                 title="删除"
                               >
-                                <FiTrash2 className="h-5 w-5" />
+                                <FiTrash2 className="h-4 w-4 sm:h-5 sm:w-5" />
                               </button>
                             </div>
                           </td>
@@ -570,14 +576,14 @@ export default function MembershipsPage() {
           </div>
         )}
         {/* 主列表始终渲染 */}
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden border border-gray-100 dark:border-gray-700">
-          <div className="px-8 py-6 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-700 dark:to-gray-600">
-            <div className="flex items-center justify-between">
-              <h2 className="text-xl font-semibold text-gray-900 dark:text-white flex items-center">
-                <FiPackage className="mr-3 text-blue-600" />
+        <div className="bg-white dark:bg-gray-800 rounded-xl sm:rounded-2xl shadow-lg overflow-hidden border border-gray-100 dark:border-gray-700">
+          <div className="px-4 sm:px-6 lg:px-8 py-4 sm:py-6 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-700 dark:to-gray-600">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-2 sm:space-y-0">
+              <h2 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white flex items-center">
+                <FiPackage className="mr-2 sm:mr-3 text-blue-600 text-base sm:text-lg" />
                 会员列表
               </h2>
-              <span className="bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 px-3 py-1 rounded-full text-sm font-medium">
+              <span className="bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium self-start sm:self-auto">
                 {sortedMemberships.length} 位会员
               </span>
             </div>
@@ -610,76 +616,76 @@ export default function MembershipsPage() {
               </button>
             </div>
           ) : (
-            <div>
+            <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                 <thead className="bg-gray-50 dark:bg-gray-700">
                   <tr>
                     <th
-                      className="px-8 py-4 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
+                      className="px-4 sm:px-6 lg:px-8 py-3 sm:py-4 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
                       onClick={() => handleSort('name')}
                     >
                       <div className="flex items-center">
                         会员信息
                         {sortField === 'name' && (
-                          <span className="ml-2 text-blue-500">
+                          <span className="ml-1 sm:ml-2 text-blue-500 text-xs sm:text-sm">
                             {sortDirection === 'asc' ? '↑' : '↓'}
                           </span>
                         )}
                       </div>
                     </th>
                     <th
-                      className="px-8 py-4 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
+                      className="px-4 sm:px-6 lg:px-8 py-3 sm:py-4 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
                       onClick={() => handleSort('cardNumber')}
                     >
                       <div className="flex items-center">
                         卡号
                         {sortField === 'cardNumber' && (
-                          <span className="ml-2 text-blue-500">
+                          <span className="ml-1 sm:ml-2 text-blue-500 text-xs sm:text-sm">
                             {sortDirection === 'asc' ? '↑' : '↓'}
                           </span>
                         )}
                       </div>
                     </th>
                     <th
-                      className="px-8 py-4 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
+                      className="px-4 sm:px-6 lg:px-8 py-3 sm:py-4 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
                       onClick={() => handleSort('phone')}
                     >
                       <div className="flex items-center">
                         卡类型
                         {sortField === 'phone' && (
-                          <span className="ml-2 text-blue-500">
+                          <span className="ml-1 sm:ml-2 text-blue-500 text-xs sm:text-sm">
                             {sortDirection === 'asc' ? '↑' : '↓'}
                           </span>
                         )}
                       </div>
                     </th>
                     <th
-                      className="px-8 py-4 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
+                      className="px-4 sm:px-6 lg:px-8 py-3 sm:py-4 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
                       onClick={() => handleSort('remainingSoups')}
                     >
                       <div className="flex items-center">
                         剩余汤品
                         {sortField === 'remainingSoups' && (
-                          <span className="ml-2 text-blue-500">
+                          <span className="ml-1 sm:ml-2 text-blue-500 text-xs sm:text-sm">
                             {sortDirection === 'asc' ? '↑' : '↓'}
                           </span>
                         )}
                       </div>
                     </th>
                     <th
-                      className="px-8 py-4 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
+                      className="px-4 sm:px-6 lg:px-8 py-3 sm:py-4 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
                       onClick={() => handleSort('issueDate')}
                     >
                       <div className="flex items-center">
                         发卡日期
                         {sortField === 'issueDate' && (
-                          <span className="ml-2 text-blue-500">
+                          <span className="ml-1 sm:ml-2 text-blue-500 text-xs sm:text-sm">
                             {sortDirection === 'asc' ? '↑' : '↓'}
                           </span>
                         )}
                       </div>
                     </th>
-                    <th className="px-8 py-4 text-right text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
+                    <th className="px-4 sm:px-6 lg:px-8 py-3 sm:py-4 text-right text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
                       操作
                     </th>
                   </tr>
@@ -691,67 +697,67 @@ export default function MembershipsPage() {
                       className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-200 transform hover:scale-[1.01]"
                       style={{ animationDelay: `${index * 50}ms` }}
                     >
-                      <td className="px-8 py-6 whitespace-nowrap">
+                      <td className="px-4 sm:px-6 lg:px-8 py-4 sm:py-6 whitespace-nowrap">
                         <div className="flex items-center">
-                          <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center mr-4">
-                            <span className="text-white font-semibold text-sm">
+                          <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center mr-3 sm:mr-4">
+                            <span className="text-white font-semibold text-xs sm:text-sm">
                               {membership.name.charAt(0)}
                             </span>
                           </div>
                           <div>
-                            <div className="text-lg font-semibold text-gray-900 dark:text-white">
+                            <div className="text-sm sm:text-lg font-semibold text-gray-900 dark:text-white">
                               {membership.name}
                             </div>
-                            <div className="text-sm text-gray-500 dark:text-gray-400">
+                            <div className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
                               {membership.phone}
                             </div>
                           </div>
                         </div>
                       </td>
-                      <td className="px-8 py-6 whitespace-nowrap">
-                        <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gradient-to-r from-blue-100 to-blue-200 text-blue-800 dark:from-blue-900 dark:to-blue-800 dark:text-blue-200">
+                      <td className="px-4 sm:px-6 lg:px-8 py-4 sm:py-6 whitespace-nowrap">
+                        <span className="inline-flex items-center px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium bg-gradient-to-r from-blue-100 to-blue-200 text-blue-800 dark:from-blue-900 dark:to-blue-800 dark:text-blue-200">
                           {membership.cardNumber}
                         </span>
                       </td>
-                      <td className="px-8 py-6 whitespace-nowrap">
-                        <span className="text-lg font-medium text-gray-900 dark:text-white">
+                      <td className="px-4 sm:px-6 lg:px-8 py-4 sm:py-6 whitespace-nowrap">
+                        <span className="text-sm sm:text-lg font-medium text-gray-900 dark:text-white">
                           {membership.cardType}
                         </span>
                       </td>
-                      <td className="px-8 py-6 whitespace-nowrap">
-                        <span className={`inline-flex items-center px-4 py-2 rounded-full text-sm font-semibold ${membership.remainingSoups > 0
+                      <td className="px-4 sm:px-6 lg:px-8 py-4 sm:py-6 whitespace-nowrap">
+                        <span className={`inline-flex items-center px-2 sm:px-4 py-1 sm:py-2 rounded-full text-xs sm:text-sm font-semibold ${membership.remainingSoups > 0
                           ? 'bg-gradient-to-r from-green-100 to-green-200 text-green-800 dark:from-green-900 dark:to-green-800 dark:text-green-200'
                           : 'bg-gradient-to-r from-red-100 to-red-200 text-red-800 dark:from-red-900 dark:to-red-800 dark:text-red-200'
                           }`}>
-                          <FiPackage className="mr-2" />
+                          <FiPackage className="mr-1 sm:mr-2 text-xs sm:text-sm" />
                           {membership.remainingSoups} 次
                         </span>
                       </td>
-                      <td className="px-8 py-6 whitespace-nowrap text-lg text-gray-500 dark:text-gray-400">
+                      <td className="px-4 sm:px-6 lg:px-8 py-4 sm:py-6 whitespace-nowrap text-sm sm:text-lg text-gray-500 dark:text-gray-400">
                         {formatSystemDate(membership.issueDate)}
                       </td>
-                      <td className="px-8 py-6 whitespace-nowrap text-right text-sm font-medium">
-                        <div className="flex items-center justify-end space-x-3">
+                      <td className="px-4 sm:px-6 lg:px-8 py-4 sm:py-6 whitespace-nowrap text-right text-xs sm:text-sm font-medium">
+                        <div className="flex items-center justify-end space-x-1 sm:space-x-3">
                           <button
                             onClick={() => router.push(`/memberships/${membership.id}`)}
-                            className="p-2 text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-all duration-200 cursor-pointer"
+                            className="p-1.5 sm:p-2 text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-all duration-200 cursor-pointer"
                             title="查看详情"
                           >
-                            <FiEye className="h-5 w-5" />
+                            <FiEye className="h-4 w-4 sm:h-5 sm:w-5" />
                           </button>
                           <button
                             onClick={() => router.push(`/memberships/${membership.id}/edit`)}
-                            className="p-2 text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-lg transition-all duration-200 cursor-pointer"
+                            className="p-1.5 sm:p-2 text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-lg transition-all duration-200 cursor-pointer"
                             title="编辑"
                           >
-                            <FiEdit2 className="h-5 w-5" />
+                            <FiEdit2 className="h-4 w-4 sm:h-5 sm:w-5" />
                           </button>
                           <button
                             onClick={() => handleDelete(membership.id, membership.name)}
-                            className="p-2 text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all duration-200 cursor-pointer"
+                            className="p-1.5 sm:p-2 text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all duration-200 cursor-pointer"
                             title="删除"
                           >
-                            <FiTrash2 className="h-5 w-5" />
+                            <FiTrash2 className="h-4 w-4 sm:h-5 sm:w-5" />
                           </button>
                         </div>
                       </td>
@@ -763,8 +769,8 @@ export default function MembershipsPage() {
           )}
         </div>
         {/* 分页组件 */}
-        <div className="flex justify-center items-center py-10">
-          <div className="w-full max-w-4xl">
+        <div className="flex justify-center items-center py-6 sm:py-10">
+          <div className="w-full max-w-full">
             <Pagination
               total={total}
               page={page}

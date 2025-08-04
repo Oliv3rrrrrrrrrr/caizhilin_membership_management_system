@@ -7,7 +7,7 @@ import { UpdateSoupRecordRequest } from '@/types/soupRecord';
 // 获取喝汤记录详情
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // 1. 认证中间件
@@ -15,7 +15,8 @@ export async function GET(
     if (authResult) return authResult;
 
     // 2. 验证ID
-    const id = validateId(params.id);
+    const { id: idParam } = await params;
+    const id = validateId(idParam);
     if (!id) {
       return ApiResponseBuilder.badRequest('无效的喝汤记录ID');
     }
@@ -38,7 +39,7 @@ export async function GET(
 // 更新喝汤记录
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // 1. 认证中间件
@@ -46,7 +47,8 @@ export async function PUT(
     if (authResult) return authResult;
 
     // 2. 验证ID
-    const id = validateId(params.id);
+    const { id: idParam } = await params;
+    const id = validateId(idParam);
     if (!id) {
       return ApiResponseBuilder.badRequest('无效的喝汤记录ID');
     }
@@ -81,7 +83,7 @@ export async function PUT(
 // 删除喝汤记录
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // 1. 认证中间件
@@ -89,7 +91,8 @@ export async function DELETE(
     if (authResult) return authResult;
 
     // 2. 验证ID
-    const id = validateId(params.id);
+    const { id: idParam } = await params;
+    const id = validateId(idParam);
     if (!id) {
       return ApiResponseBuilder.badRequest('无效的喝汤记录ID');
     }

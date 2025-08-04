@@ -122,7 +122,7 @@ export class MembershipService {
     if (!existing) throw new Error('会员不存在');
     this.validateUpdateData(data);
     if (data.phone) await this.checkPhoneExists(data.phone, id);
-    const updateData: any = {};
+    const updateData: Record<string, unknown> = {};
     if (data.name !== undefined) updateData.name = data.name;
     if (data.cardType !== undefined) updateData.cardType = data.cardType;
     if (data.remainingSoups !== undefined) updateData.remainingSoups = data.remainingSoups;
@@ -187,7 +187,7 @@ export class MembershipService {
 
   // 检查手机号是否存在
   private static async checkPhoneExists(phone: string, excludeId?: number): Promise<void> {
-    const where: any = { phone };
+    const where: Record<string, unknown> = { phone };
     if (excludeId) where.id = { not: excludeId };
     const existing = await prisma.memberships.findFirst({ where });
     if (existing) throw new Error('手机号已存在');

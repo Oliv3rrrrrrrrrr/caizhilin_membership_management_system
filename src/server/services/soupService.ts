@@ -79,7 +79,7 @@ export class SoupService {
     const existing = await this.getSoupById(id);
     if (!existing) throw new Error('汤品不存在');
     this.validateUpdateData(data);
-    const updateData: any = {};
+    const updateData: Record<string, unknown> = {};
     if (data.name !== undefined) updateData.name = data.name;
     if (data.type !== undefined) updateData.type = data.type;
     if (Object.keys(updateData).length === 0) throw new Error('没有提供要更新的字段');

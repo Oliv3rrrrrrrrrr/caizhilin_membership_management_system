@@ -49,15 +49,15 @@ export default function Charts() {
         }
         const data = await getChartData(token);
         setChartData(data);
-      } catch (err: any) {
-        setError(err.message);
+      } catch (err: unknown) {
+        setError(err instanceof Error ? err.message : '获取图表数据失败');
       } finally {
         setLoading(false);
       }
     };
 
     fetchChartData();
-  }, []);
+  }, [router]);
 
   const handleRefresh = async () => {
     try {
@@ -71,8 +71,8 @@ export default function Charts() {
       
       const data = await getChartData(token);
       setChartData(data);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : '刷新图表数据失败');
     } finally {
       setLoading(false);
     }
@@ -113,31 +113,31 @@ export default function Charts() {
   }
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-700 mt-8">
+    <div className="bg-white dark:bg-gray-800 rounded-xl sm:rounded-2xl shadow-lg border border-gray-100 dark:border-gray-700 mt-6 sm:mt-8">
       {/* 头部 */}
-      <div className="p-6 border-b border-gray-200 dark:border-gray-700">
-        <div className="flex items-center justify-between">
+      <div className="p-4 sm:p-6 border-b border-gray-200 dark:border-gray-700">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-3 sm:space-y-0">
           <div className="flex items-center">
-            <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center mr-4">
-              <FiTrendingUp className="text-white" />
+            <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg sm:rounded-xl flex items-center justify-center mr-3 sm:mr-4">
+              <FiTrendingUp className="text-white w-4 h-4 sm:w-5 sm:h-5" />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-gray-900 dark:text-white">数据统计</h2>
-              <p className="text-gray-600 dark:text-gray-400 text-sm">会员和消费数据分析</p>
+              <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white">数据统计</h2>
+              <p className="text-gray-600 dark:text-gray-400 text-xs sm:text-sm">会员和消费数据分析</p>
             </div>
           </div>
           <button
             onClick={handleRefresh}
-            className="p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-all duration-200 cursor-pointer"
+            className="p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-all duration-200 cursor-pointer self-start sm:self-auto"
           >
-            <FiRefreshCw className="w-5 h-5" />
+            <FiRefreshCw className="w-4 h-4 sm:w-5 sm:h-5" />
           </button>
         </div>
       </div>
 
       {/* 标签页 */}
-      <div className="px-6 pt-4">
-        <div className="flex space-x-1 bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
+      <div className="px-4 sm:px-6 pt-4">
+        <div className="flex space-x-1 bg-gray-100 dark:bg-gray-700 rounded-lg p-1 overflow-x-auto">
           {[
             { id: 'overview', label: '概览', icon: FiTrendingUp },
             { id: 'members', label: '会员', icon: FiUsers },
@@ -146,13 +146,13 @@ export default function Charts() {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 cursor-pointer ${
+              className={`flex items-center px-3 sm:px-4 py-2 rounded-md text-xs sm:text-sm font-medium transition-all duration-200 cursor-pointer flex-shrink-0 ${
                 activeTab === tab.id
                   ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow-sm'
                   : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
               }`}
             >
-              <tab.icon className="w-4 h-4 mr-2" />
+              <tab.icon className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
               {tab.label}
             </button>
           ))}
@@ -160,16 +160,16 @@ export default function Charts() {
       </div>
 
       {/* 图表内容 */}
-      <div className="p-6">
+      <div className="p-4 sm:p-6">
         {activeTab === 'overview' && (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
             {/* 会员增长趋势 */}
-            <div className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-4">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
-                <FiUsers className="mr-2 text-blue-500" />
+            <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg sm:rounded-xl p-3 sm:p-4">
+              <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white mb-3 sm:mb-4 flex items-center">
+                <FiUsers className="mr-2 text-blue-500 w-4 h-4 sm:w-5 sm:h-5" />
                 会员增长趋势
               </h3>
-              <ResponsiveContainer width="100%" height={200}>
+              <ResponsiveContainer width="100%" height={180} className="sm:h-[200px]">
                 <LineChart data={chartData.memberGrowth}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
                   <XAxis dataKey="month" stroke="#6B7280" />
@@ -204,12 +204,12 @@ export default function Charts() {
             </div>
 
             {/* 每日喝汤记录 */}
-            <div className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-4">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
-                <FiCalendar className="mr-2 text-green-500" />
+            <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg sm:rounded-xl p-3 sm:p-4">
+              <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white mb-3 sm:mb-4 flex items-center">
+                <FiCalendar className="mr-2 text-green-500 w-4 h-4 sm:w-5 sm:h-5" />
                 每日喝汤记录（最近7天）
               </h3>
-              <ResponsiveContainer width="100%" height={200}>
+              <ResponsiveContainer width="100%" height={180} className="sm:h-[200px]">
                 <AreaChart data={chartData.dailyRecords}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
                   <XAxis dataKey="date" stroke="#6B7280" />
@@ -246,14 +246,14 @@ export default function Charts() {
         )}
 
         {activeTab === 'members' && (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
             {/* 会员活跃度分布 */}
-            <div className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-4">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
-                <FiUsers className="mr-2 text-purple-500" />
+            <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg sm:rounded-xl p-3 sm:p-4">
+              <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white mb-3 sm:mb-4 flex items-center">
+                <FiUsers className="mr-2 text-purple-500 w-4 h-4 sm:w-5 sm:h-5" />
                 会员分布
               </h3>
-              <ResponsiveContainer width="100%" height={250}>
+              <ResponsiveContainer width="100%" height={220} className="sm:h-[250px]">
                 <PieChart>
                   <Pie
                     data={chartData.memberActivity}
@@ -284,12 +284,12 @@ export default function Charts() {
             </div>
 
             {/* 卡类型分布 */}
-            <div className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-4">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
-                <FiUsers className="mr-2 text-orange-500" />
+            <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg sm:rounded-xl p-3 sm:p-4">
+              <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white mb-3 sm:mb-4 flex items-center">
+                <FiUsers className="mr-2 text-orange-500 w-4 h-4 sm:w-5 sm:h-5" />
                 卡类型分布
               </h3>
-              <ResponsiveContainer width="100%" height={250}>
+              <ResponsiveContainer width="100%" height={220} className="sm:h-[250px]">
                 <BarChart data={chartData.cardTypeDistribution}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
                   <XAxis dataKey="name" stroke="#6B7280" />
@@ -320,14 +320,14 @@ export default function Charts() {
         )}
 
         {activeTab === 'consumption' && (
-          <div className="space-y-6">
+          <div className="space-y-4 sm:space-y-6">
             {/* 汤品消费统计 */}
-            <div className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-4">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
-                <FiCoffee className="mr-2 text-red-500" />
+            <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg sm:rounded-xl p-3 sm:p-4">
+              <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white mb-3 sm:mb-4 flex items-center">
+                <FiCoffee className="mr-2 text-red-500 w-4 h-4 sm:w-5 sm:h-5" />
                 汤品消费统计
               </h3>
-              <ResponsiveContainer width="100%" height={300}>
+              <ResponsiveContainer width="100%" height={250} className="sm:h-[300px]">
                 <BarChart data={chartData.soupConsumption}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
                   <XAxis dataKey="name" stroke="#6B7280" />

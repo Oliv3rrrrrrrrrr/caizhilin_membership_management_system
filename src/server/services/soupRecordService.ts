@@ -303,7 +303,7 @@ export class SoupRecordService {
       const soup = await prisma.soup.findUnique({ where: { id: data.soupId } });
       if (!soup) throw new Error('汤品不存在');
     }
-    const updateData: any = {};
+    const updateData: Record<string, unknown> = {};
     if (data.soupId !== undefined) updateData.soupId = data.soupId;
     if (data.drinkTime !== undefined) updateData.drinkTime = new Date(data.drinkTime);
     if (Object.keys(updateData).length === 0) throw new Error('没有提供要更新的字段');

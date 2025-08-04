@@ -37,8 +37,15 @@ export class AdminService {
   }
 
   // 根据手机号获取管理员
-  static async getAdminByPhone(phone: string): Promise<any | null> {
-    return prisma.admin.findUnique({ where: { phone } });
+  static async getAdminByPhone(phone: string): Promise<AdminResponse | null> {
+    return prisma.admin.findUnique({ 
+      where: { phone },
+      select: {
+        id: true,
+        name: true,
+        phone: true,
+      }
+    });
   }
 
   // 创建管理员
@@ -67,7 +74,7 @@ export class AdminService {
     if (!existing) throw new Error('管理员不存在');
     this.validateUpdateData(data);
     if (data.phone) await this.checkPhoneExists(data.phone, id);
-    const updateData: any = {};
+    const updateData: Record<string, unknown> = {};
     if (data.name !== undefined) updateData.name = data.name;
     if (data.phone !== undefined) updateData.phone = data.phone;
     if (data.password !== undefined) updateData.password = await hashPassword(data.password);
@@ -98,7 +105,12 @@ export class AdminService {
     if (!admin) throw new Error('手机号或密码错误');
     const valid = await verifyPassword(data.password, admin.password);
     if (!valid) throw new Error('手机号或密码错误');
-    const token = generateToken({ id: admin.id, phone: admin.phone });
+    const token = generateToken({ 
+      userId: admin.id, 
+      username: admin.name, 
+      role: 'admin',
+      phone: admin.phone 
+    });
     return {
       token,
       admin: {
@@ -140,7 +152,7 @@ export class AdminService {
 
   // 检查手机号是否存在
   private static async checkPhoneExists(phone: string, excludeId?: number): Promise<void> {
-    const where: any = { phone };
+    const where: Record<string, unknown> = { phone };
     if (excludeId) where.id = { not: excludeId };
     const exists = await prisma.admin.findFirst({ where });
     if (exists) throw new Error('该手机号已被注册');
