@@ -44,15 +44,15 @@ function formatTime(timestamp: string): string {
 
 export default function RecentActivity() {
   const router = useRouter();
-  const [activities, setActivities] = useState<RecentActivity[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [filterType, setFilterType] = useState<ActivityType | 'all'>('all');
-  const [isRefreshing, setIsRefreshing] = useState(false);
-  const [hasMore, setHasMore] = useState(true);
-  const [loadingMore, setLoadingMore] = useState(false);
-  const [page, setPage] = useState(1);
-  const PAGE_SIZE = 10;
+  const [activities, setActivities] = useState<RecentActivity[]>([]); // 活动列表
+  const [loading, setLoading] = useState(true); // 加载状态
+  const [error, setError] = useState(''); // 错误信息
+  const [filterType, setFilterType] = useState<ActivityType | 'all'>('all'); // 过滤类型
+  const [isRefreshing, setIsRefreshing] = useState(false); // 刷新状态
+  const [hasMore, setHasMore] = useState(true); // 是否还有更多数据
+  const [loadingMore, setLoadingMore] = useState(false); // 加载更多状态
+  const [page, setPage] = useState(1); // 当前页码
+  const PAGE_SIZE = 10; // 每页显示的活动数量
 
   // 获取活动数据
   const fetchActivities = async (isLoadMore: boolean = false) => {

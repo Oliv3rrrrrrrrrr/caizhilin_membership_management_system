@@ -7,9 +7,6 @@ import Sidebar from './Sidebar';
 import StatsCards from './StatsCards';
 import QuickLinks from './QuickLinks';
 import RecentActivity from './RecentActivity';
-import GlobalSearch from './GlobalSearch';
-import UserProfile from './UserProfile';
-import Notifications from './Notifications';
 import Charts from './Charts';
 
 export default function DashboardPage() {
@@ -32,13 +29,8 @@ export default function DashboardPage() {
         <main className="flex-1 p-8 bg-gray-50 dark:bg-gray-900 overflow-auto">
           <StatsCards />
           <QuickLinks />
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-8">
-            <RecentActivity />
-            <Charts />
-          </div>
-          <GlobalSearch />
-          <UserProfile />
-          <Notifications />
+          <RecentActivity />
+          <Charts />
         </main>
       </div>
     </div>

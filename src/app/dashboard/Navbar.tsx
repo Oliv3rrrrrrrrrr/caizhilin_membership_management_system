@@ -1,15 +1,20 @@
 import { useRouter } from 'next/navigation';
-import { FiBell, FiSettings, FiLogOut, FiUser, FiGrid } from 'react-icons/fi';
+import { useState } from 'react';
+import { FiLogOut, FiGrid } from 'react-icons/fi';
+import LogoutConfirmModal from '@/components/LogoutConfirmModal';
 
 export default function Navbar() {
   const router = useRouter();
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
 
-  const handleLogout = () => {
-    if (window.confirm('确定要退出登录吗？')) {
-      localStorage.removeItem('token');
-      localStorage.removeItem('admin');
-      router.push('/login');
-    }
+  const handleLogoutClick = () => {
+    setIsLogoutModalOpen(true);
+  };
+
+  const handleLogoutConfirm = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('admin');
+    router.push('/login');
   };
 
   return (
@@ -21,29 +26,22 @@ export default function Navbar() {
       </div>
       {/* 右侧操作区 */}
       <div className="flex items-center space-x-4">
-        {/* 通知icon */}
-        <button className="relative p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition">
-          <span className="sr-only">通知</span>
-          <FiBell className="w-5 h-5 text-gray-500 dark:text-gray-300" />
-          <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
-        </button>
-        {/* 管理员信息 */}
-        <div className="flex items-center space-x-2">
-          <FiUser className="w-8 h-8 rounded-full text-gray-400 dark:text-gray-500 bg-gray-100 dark:bg-gray-800 p-1" />
-          <span className="text-gray-700 dark:text-gray-200 text-sm font-medium select-none">管理员</span>
-        </div>
-        {/* 设置 */}
-        <button className="p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-800 transition cursor-pointer">
-          <FiSettings className="w-5 h-5 text-gray-500 dark:text-gray-300" />
-        </button>
         {/* 退出 */}
         <button
-          className="p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-800 transition cursor-pointer"
-          onClick={handleLogout}
+          className="flex items-center gap-2 p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-800 transition cursor-pointer"
+          onClick={handleLogoutClick}
         >
+          退出
           <FiLogOut className="w-5 h-5 text-gray-500 dark:text-gray-300" />
         </button>
       </div>
+
+      {/* 退出确认弹窗 */}
+      <LogoutConfirmModal 
+        isOpen={isLogoutModalOpen} 
+        onClose={() => setIsLogoutModalOpen(false)}
+        onConfirm={handleLogoutConfirm}
+      />
     </nav>
   );
 }

@@ -6,9 +6,6 @@ const menu = [
   { label: '会员管理', icon: <FiUsers />, path: '/memberships' },
   { label: '汤品管理', icon: <FiCoffee />, path: '/soups' },
   { label: '喝汤记录', icon: <FiClipboard />, path: '/soup-records' },
-  { label: '管理员管理', icon: <FiShield />, path: '/admins' },
-  { label: '数据统计', icon: <FiBarChart />, path: '/dashboard/analytics' },
-  { label: '系统设置', icon: <FiSettings />, path: '/settings' },
 ];
 
 export default function Sidebar() {
